@@ -1,692 +1,231 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0"
->
-
-<title>Ficha RPG 3D&T Alpha</title>
-
-<link
-rel="stylesheet"
-href="style.css"
->
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha RPG 3D&T Alpha</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="script.js"></script>
 </head>
-
 <body>
 
 <div class="background-overlay"></div>
 
 <div class="ficha">
+    <h1>Ficha RPG 3D&T Alpha</h1>
 
-<h1>Ficha RPG 3D&T Alpha</h1>
+    <!-- Indicador de modo (Mestre/Jogador) -->
+    <div id="modoIndicator" style="text-align: center; margin-bottom: 10px; padding: 5px; border-radius: 8px; font-size: 12px;"></div>
 
-<!-- ABAS -->
+    <div class="abas">
+        <button class="aba-btn ativa" onclick="abrirAba(event,'abaPrincipal')">Principal</button>
+        <button class="aba-btn" onclick="abrirAba(event,'abaVantagens')">Vantagens</button>
+        <button class="aba-btn" onclick="abrirAba(event,'abaInventario')">Inventário</button>
+        <button class="aba-btn" onclick="abrirAba(event,'abaMagias')">Magias</button>
+        <button class="aba-btn" onclick="abrirAba(event,'abaKits')">Kits</button>
+    </div>
 
-<div class="abas">
+    <!-- Painel do Mestre (só aparece para o host) -->
+    <div id="painelMestre" style="display: none; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div>
+                <strong>👑 Modo Mestre</strong>
+                <select id="listaPersonagens" style="margin-left: 10px; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 5px; padding: 5px;">
+                    <option value="">Selecione um personagem</option>
+                </select>
+                <button id="btnCriarPersonagem" style="background: #5d4723; border: none; color: white; border-radius: 5px; padding: 5px 10px; margin-left: 5px; cursor: pointer;">+ Novo Personagem</button>
+            </div>
+            <div>
+                <label style="display: flex; align-items: center; gap: 5px;">
+                    <input type="checkbox" id="ocultarRolagensMestre">
+                    <span style="font-size: 12px;">🔇 Ocultar minhas rolagens</span>
+                </label>
+            </div>
+        </div>
+    </div>
 
-<button
-class="aba-btn ativa"
-onclick="abrirAba(event,'abaPrincipal')"
->
+    <!-- Área de seleção de personagem para jogador (só aparece se houver mais de um personagem associado?) -->
+    <div id="selecionarPersonagemJogador" style="display: none; margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 10px;">
+        <strong>🎮 Seu Personagem:</strong>
+        <span id="nomePersonagemSelecionado"></span>
+    </div>
 
-Principal
+    <div id="abaPrincipal" class="aba-conteudo ativa">
+        <div class="topo">
+            
+            <div class="painel-esquerdo bloco-rpg">
+                <input type="text" id="nomePersonagemInput" class="nome-personagem" placeholder="Personagem">
+                <div class="preview-container">
+                    <img id="preview" src="" alt="Avatar">
+                </div>
+                <input type="file" id="uploadImagem" accept="image/png, image/jpeg">
+            </div>
 
-</button>
+            <div class="status-centro bloco-rpg">
+                <div class="status-grid">
+                    <div class="atributo">
+                        <span>F</span>
+                        <input type="number" id="forca" value="0" min="0">
+                        <input type="number" id="bonusForca" class="bonus" value="0">
+                        <button class="teste-btn" onclick="window.testarAtributo('Força', 'forca', 'bonusForca')">🎲</button>
+                    </div>
+                    <div class="atributo">
+                        <span>H</span>
+                        <input type="number" id="habilidade" value="0" min="0">
+                        <input type="number" id="bonusHabilidade" class="bonus" value="0">
+                        <button class="teste-btn" onclick="window.testarAtributo('Habilidade', 'habilidade', 'bonusHabilidade')">🎲</button>
+                    </div>
+                    <div class="atributo">
+                        <span>R</span>
+                        <input type="number" id="resistencia" value="0" min="0">
+                        <input type="number" id="bonusResistencia" class="bonus" value="0">
+                        <button class="teste-btn" onclick="window.testarAtributo('Resistência', 'resistencia', 'bonusResistencia')">🎲</button>
+                    </div>
+                    <div class="atributo">
+                        <span>A</span>
+                        <input type="number" id="armadura" value="0" min="0">
+                        <input type="number" id="bonusArmadura" class="bonus" value="0">
+                        <button class="teste-btn" onclick="window.testarAtributo('Armadura', 'armadura', 'bonusArmadura')">🎲</button>
+                    </div>
+                    <div class="atributo-mini">
+                        <span>PV</span>
+                        <input type="number" id="pvTotal" placeholder="Total">
+                        <input type="number" id="pvAtual" placeholder="Atual">
+                    </div>
+                    <div class="atributo">
+                        <span>PdF</span>
+                        <input type="number" id="pdf" value="0" min="0">
+                        <input type="number" id="bonusPdf" class="bonus" value="0">
+                        <button class="teste-btn" onclick="window.testarAtributo('PdF', 'pdf', 'bonusPdf')">🎲</button>
+                    </div>
+                    <div class="atributo-mini">
+                        <span>PM</span>
+                        <input type="number" id="pmTotal" placeholder="Total">
+                        <input type="number" id="pmAtual" placeholder="Atual">
+                    </div>
+                </div>
+            </div>
 
-<button
-class="aba-btn"
-onclick="abrirAba(event,'abaVantagens')"
->
+            <div class="painel-direito bloco-rpg">
+                <div class="historico-header">
+                    <span>Histórico de Rolagens</span>
+                    <button class="limpar-btn" onclick="window.limparHistorico()">🧹 Limpar</button>
+                </div>
+                <div id="resultado" class="historico-scroll"></div>
 
-Vantagens
+                <!-- Dado Genérico Customizável -->
+                <div style="display: flex; gap: 8px; margin-bottom: 10px; align-items: center;">
+                    <input type="text" id="dadoCustomizavel" value="1d6" style="flex: 1; text-align: center; font-weight: bold;">
+                    <button id="btnRolarDadoGenerico" style="background: #5d4723; border: none; color: white; border-radius: 8px; padding: 8px 15px; cursor: pointer;">🎲 Rolar Dado</button>
+                </div>
 
-</button>
+                <div class="linha-mini-box">
+                    <div class="mini-box">
+                        <span>Pontos</span>
+                        <input type="number" id="pontosPersonagem" value="10" min="0">
+                    </div>
+                    <div class="mini-box">
+                        <span>XP</span>
+                        <input type="number" id="xp" value="0" min="0">
+                    </div>
+                    <div class="mini-box">
+                        <span>T$</span>
+                        <input type="number" id="dinheiro" value="0" min="0">
+                    </div>
+                </div>
 
-<button
-class="aba-btn"
-onclick="abrirAba(event,'abaInventario')"
->
+                <div class="acoes-verticais">
+                    <button onclick="window.ataqueCurto()">⚔️ Ataque Curto</button>
+                    <button onclick="window.ataqueDistancia()">🏹 Ataque Distância</button>
+                    <button onclick="window.defesa()">🛡️ Defesa</button>
+                </div>
+            </div>
 
-Inventário
+        </div>
 
-</button>
+        <div class="vantagem-unica bloco-rpg">
+            <h2>Vantagem Única</h2>
+            <div id="vantagemUnicaContainer" class="lista"></div>
+        </div>
+    </div>
 
-<button
-class="aba-btn"
-onclick="abrirAba(event,'abaMagias')"
->
+    <div id="abaVantagens" class="aba-conteudo">
+        <div class="conteudo-ficha tres-colunas">
+            <div class="bloco-ficha">
+                <h2>Vantagens</h2>
+                <div id="vantagensContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarItem('vantagensContainer', 'vantagem')">+ Vantagem</button>
+            </div>
+            <div class="bloco-ficha">
+                <h2>Desvantagens</h2>
+                <div id="desvantagensContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarItem('desvantagensContainer', 'desvantagem')">+ Desvantagem</button>
+            </div>
+            <div class="bloco-ficha">
+                <h2>Perícias</h2>
+                <div id="periciasContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarItem('periciasContainer', 'pericia')">+ Perícia</button>
+            </div>
+        </div>
+    </div>
 
-Magias
+    <div id="abaInventario" class="aba-conteudo">
+        <div class="conteudo-ficha tres-colunas">
+            <div class="bloco-ficha">
+                <h2>Itens</h2>
+                <div id="itensContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarItem('itensContainer', 'item')">+ Item</button>
+            </div>
+            <div class="bloco-ficha">
+                <h2>Equipamentos</h2>
+                <div id="equipamentosContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarItem('equipamentosContainer', 'equipamento')">+ Equipamento</button>
+            </div>
+            <div class="bloco-ficha">
+                <h2>Tipos de Dano</h2>
+                <div id="tiposDanoContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarTipoDano()">+ Tipo de Dano</button>
+            </div>
+        </div>
+    </div>
 
-</button>
+    <div id="abaMagias" class="aba-conteudo">
+        <div class="conteudo-ficha">
+            <div class="bloco-ficha">
+                <h2>Magias</h2>
+                <div id="magiasContainer" class="lista"></div>
+                <button class="add-btn" onclick="window.adicionarItem('magiasContainer', 'magia')">+ Magia</button>
+            </div>
+        </div>
+    </div>
 
-<button
-class="aba-btn"
-onclick="abrirAba(event,'abaKits')"
->
+    <div id="abaKits" class="aba-conteudo">
+        <div class="secao">
+            <h2>Kits de Personagem</h2>
+            <div id="kitContainer" class="kits-grid"></div>
+            <button class="add-btn" onclick="window.adicionarKit()">+ Novo Kit</button>
+        </div>
+    </div>
 
-Kits
+    <div id="popup" class="popup oculto">
+        <div class="popup-conteudo">
+            <button class="fechar-popup" onclick="fecharPopup()">X</button>
+            <h2 id="popupTitulo"></h2>
+            <p id="popupTexto"></p>
+        </div>
+    </div>
 
-</button>
+    <div id="popupEditor" class="popup oculto">
+        <div class="popup-conteudo">
+            <button class="fechar-popup" onclick="fecharEditor()">X</button>
+            <h2>Descrição</h2>
+            <textarea id="editorTexto" class="editor-texto"></textarea>
+            <button class="salvar-editor" onclick="salvarDescricao()">Salvar</button>
+        </div>
+    </div>
 
+    <div id="dice3d">🎲</div>
 </div>
-
-<!-- ABA PRINCIPAL -->
-
-<div
-id="abaPrincipal"
-class="aba-conteudo ativa"
->
-
-<div class="topo">
-
-<!-- ESQUERDA -->
-
-<div class="painel-esquerdo bloco-rpg">
-
-<input
-type="text"
-class="nome-personagem"
-placeholder="Personagem"
->
-
-<div class="preview-container">
-
-<img
-id="preview"
-src=""
-alt="Avatar"
->
-
-</div>
-
-<input
-type="file"
-id="uploadImagem"
-accept="image/png, image/jpeg"
->
-
-</div>
-
-<!-- CENTRO -->
-
-<div class="status-centro bloco-rpg">
-
-<div class="status-grid">
-
-<!-- F -->
-
-<div class="atributo">
-
-<span>F</span>
-
-<input type="number" id="forca" value="0" min="0">
-
-<input type="number" id="bonusForca" class="bonus" value="0">
-
-<button
-class="teste-btn"
-onclick="
-testarAtributo(
-'Força',
-'forca',
-'bonusForca'
-)
-"
->
-
-🎲
-
-</button>
-
-</div>
-
-<!-- H -->
-
-<div class="atributo">
-
-<span>H</span>
-
-<input type="number" id="habilidade" value="0" min="0">
-
-<input type="number" id="bonusHabilidade" class="bonus" value="0">
-
-<button
-class="teste-btn"
-onclick="
-testarAtributo(
-'Habilidade',
-'habilidade',
-'bonusHabilidade'
-)
-"
->
-
-🎲
-
-</button>
-
-</div>
-
-<!-- R -->
-
-<div class="atributo">
-
-<span>R</span>
-
-<input type="number" id="resistencia" value="0" min="0">
-
-<input type="number" id="bonusResistencia" class="bonus" value="0">
-
-<button
-class="teste-btn"
-onclick="
-testarAtributo(
-'Resistência',
-'resistencia',
-'bonusResistencia'
-)
-"
->
-
-🎲
-
-</button>
-
-</div>
-
-<!-- A -->
-
-<div class="atributo">
-
-<span>A</span>
-
-<input type="number" id="armadura" value="0" min="0">
-
-<input type="number" id="bonusArmadura" class="bonus" value="0">
-
-<button
-class="teste-btn"
-onclick="
-testarAtributo(
-'Armadura',
-'armadura',
-'bonusArmadura'
-)
-"
->
-
-🎲
-
-</button>
-
-</div>
-
-<!-- PV -->
-
-<div class="atributo-mini">
-
-<span>PV</span>
-
-<input
-type="number"
-placeholder="Total"
->
-
-<input
-type="number"
-placeholder="Atual"
->
-
-</div>
-
-<!-- PDF -->
-
-<div class="atributo">
-
-<span>PdF</span>
-
-<input type="number" id="pdf" value="0" min="0">
-
-<input type="number" id="bonusPdf" class="bonus" value="0">
-
-<button
-class="teste-btn"
-onclick="
-testarAtributo(
-'PdF',
-'pdf',
-'bonusPdf'
-)
-"
->
-
-🎲
-
-</button>
-
-</div>
-
-<!-- PM -->
-
-<div class="atributo-mini">
-
-<span>PM</span>
-
-<input
-type="number"
-placeholder="Total"
->
-
-<input
-type="number"
-placeholder="Atual"
->
-
-</div>
-
-</div>
-
-</div>
-
-<!-- DIREITA -->
-
-<div class="painel-direito bloco-rpg">
-
-<div id="resultado">
-
-Resultado das rolagens...
-
-</div>
-
-<div class="linha-mini-box">
-
-<div class="mini-box">
-
-<span>Pontos</span>
-
-<input
-type="number"
-id="pontosPersonagem"
-value="10"
-min="0"
->
-
-</div>
-
-<div class="mini-box">
-
-<span>XP</span>
-
-<input
-type="number"
-id="xp"
-value="0"
-min="0"
->
-
-</div>
-
-<div class="mini-box">
-
-<span>T$</span>
-
-<input
-type="number"
-id="dinheiro"
-value="0"
-min="0"
->
-
-</div>
-
-</div>
-
-<div class="acoes-verticais">
-
-<button onclick="ataqueCurto()">
-
-⚔️ Ataque Curto
-
-</button>
-
-<button onclick="ataqueDistancia()">
-
-🏹 Ataque Distância
-
-</button>
-
-<button onclick="defesa()">
-
-🛡️ Defesa
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- VANTAGEM ÚNICA -->
-
-<div class="vantagem-unica bloco-rpg">
-
-<h2>Vantagem Única</h2>
-
-<div
-id="vantagemUnicaContainer"
-class="lista"
->
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ABA VANTAGENS -->
-
-<div
-id="abaVantagens"
-class="aba-conteudo"
->
-
-<div class="conteudo-ficha tres-colunas">
-
-<div class="bloco-ficha">
-
-<h2>Vantagens</h2>
-
-<div id="vantagensContainer" class="lista"></div>
-
-<button
-class="add-btn"
-onclick="
-adicionarItem(
-'vantagensContainer',
-'vantagem'
-)
-"
->
-
-+ Vantagem
-
-</button>
-
-</div>
-
-<div class="bloco-ficha">
-
-<h2>Desvantagens</h2>
-
-<div id="desvantagensContainer" class="lista"></div>
-
-<button
-class="add-btn"
-onclick="
-adicionarItem(
-'desvantagensContainer',
-'desvantagem'
-)
-"
->
-
-+ Desvantagem
-
-</button>
-
-</div>
-
-<div class="bloco-ficha">
-
-<h2>Perícias</h2>
-
-<div id="periciasContainer" class="lista"></div>
-
-<button
-class="add-btn"
-onclick="
-adicionarItem(
-'periciasContainer',
-'pericia'
-)
-"
->
-
-+ Perícia
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ABA INVENTÁRIO -->
-
-<div
-id="abaInventario"
-class="aba-conteudo"
->
-
-<div class="conteudo-ficha tres-colunas">
-
-<div class="bloco-ficha">
-
-<h2>Itens</h2>
-
-<div id="itensContainer" class="lista"></div>
-
-<button
-class="add-btn"
-onclick="
-adicionarItem(
-'itensContainer',
-'item'
-)
-"
->
-
-+ Item
-
-</button>
-
-</div>
-
-<div class="bloco-ficha">
-
-<h2>Equipamentos</h2>
-
-<div id="equipamentosContainer" class="lista"></div>
-
-<button
-class="add-btn"
-onclick="
-adicionarItem(
-'equipamentosContainer',
-'equipamento'
-)
-"
->
-
-+ Equipamento
-
-</button>
-
-</div>
-
-<div class="bloco-ficha">
-
-<h2>Tipos de Dano</h2>
-
-<div id="tiposDanoContainer" class="lista"></div>
-
-<button
-class="add-btn"
-onclick="adicionarTipoDano()"
->
-
-+ Tipo de Dano
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ABA MAGIAS -->
-
-<div
-id="abaMagias"
-class="aba-conteudo"
->
-
-<div class="conteudo-ficha">
-
-<div class="bloco-ficha">
-
-<h2>Magias</h2>
-
-<div
-id="magiasContainer"
-class="lista"
->
-
-</div>
-
-<button
-class="add-btn"
-onclick="
-adicionarItem(
-'magiasContainer',
-'magia'
-)
-"
->
-
-+ Magia
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<!-- ABA KITS -->
-
-<div
-id="abaKits"
-class="aba-conteudo"
->
-
-<div class="secao">
-
-<h2>Kits de Personagem</h2>
-
-<div
-id="kitContainer"
-class="kits-grid"
->
-
-</div>
-
-<button
-class="add-btn"
-onclick="adicionarKit()"
->
-
-+ Novo Kit
-
-</button>
-
-</div>
-
-</div>
-
-<!-- POPUP -->
-
-<div
-id="popup"
-class="popup oculto"
->
-
-<div class="popup-conteudo">
-
-<button
-class="fechar-popup"
-onclick="fecharPopup()"
->
-
-X
-
-</button>
-
-<h2 id="popupTitulo"></h2>
-
-<p id="popupTexto"></p>
-
-</div>
-
-</div>
-
-<!-- EDITOR -->
-
-<div
-id="popupEditor"
-class="popup oculto"
->
-
-<div class="popup-conteudo">
-
-<button
-class="fechar-popup"
-onclick="fecharEditor()"
->
-
-X
-
-</button>
-
-<h2>Descrição</h2>
-
-<textarea
-id="editorTexto"
-class="editor-texto"
-></textarea>
-
-<button
-class="salvar-editor"
-onclick="salvarDescricao()"
->
-
-Salvar
-
-</button>
-
-</div>
-
-</div>
-
-<div id="dice3d">
-
-🎲
-
-</div>
-
-<script src="script.js"></script>
 
 </body>
 </html>

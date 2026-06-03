@@ -45,7 +45,6 @@ font-size:18px;
 }
 
 /* ABAS */
-
 .abas{
 display:flex;
 gap:10px;
@@ -84,7 +83,6 @@ display:block;
 }
 
 /* TOPO */
-
 .topo{
 display:flex;
 gap:14px;
@@ -94,11 +92,9 @@ justify-content:flex-start;
 }
 
 /* BLOCOS */
-
 .bloco-rpg,
 .bloco-ficha,
-.secao,
-.kit-item{
+.secao{
 background:rgba(35,35,35,0.95);
 border:1px solid #6f5730;
 border-radius:16px;
@@ -107,7 +103,6 @@ box-shadow:0 0 12px rgba(0,0,0,0.5);
 }
 
 /* ESQUERDA */
-
 .painel-esquerdo{
 width:210px;
 display:flex;
@@ -153,10 +148,10 @@ width:100%;
 background:#1b1b1b;
 padding:10px;
 border-radius:12px;
+margin-top:14px;
 }
 
 /* CENTRO */
-
 .status-centro{
 width:360px;
 }
@@ -223,22 +218,79 @@ transition:0.3s;
 background:#8a6a35;
 }
 
-/* DIREITA */
-
+/* DIREITA E HISTÓRICO */
 .painel-direito{
 flex:1;
 min-width:280px;
+display:flex;
+flex-direction:column;
 }
 
-#resultado{
-min-height:150px;
+.historico-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:6px;
+}
+
+.historico-header span{
+font-size:14px;
+font-weight:bold;
+color:#d9b97d;
+}
+
+.limpar-btn{
+background:#772222;
+color:white;
+border:none;
+padding:4px 10px;
+font-size:11px;
+border-radius:6px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.limpar-btn:hover{
+background:#993333;
+}
+
+.historico-scroll{
+height:165px;
+overflow-y:auto;
 padding:10px;
 background:#111;
 border-radius:12px;
 border:1px solid #555;
 margin-bottom:12px;
-line-height:1.6;
-font-size:14px;
+font-size:13px;
+display:flex;
+flex-direction:column;
+gap:10px;
+}
+
+.historico-card {
+background:#1e1e1e;
+border-left:3px solid #9b7b45;
+padding:8px;
+border-radius:4px;
+line-height:1.4;
+box-shadow:0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Customização da Barra de Rolagem Lateral */
+.historico-scroll::-webkit-scrollbar {
+width:6px;
+}
+.historico-scroll::-webkit-scrollbar-track {
+background:#111;
+border-radius:12px;
+}
+.historico-scroll::-webkit-scrollbar-thumb {
+background:#5d4723;
+border-radius:12px;
+}
+.historico-scroll::-webkit-scrollbar-thumb:hover {
+background:#8a6a35;
 }
 
 .linha-mini-box{
@@ -266,6 +318,7 @@ font-weight:bold;
 width:100%;
 height:32px;
 text-align:center;
+padding:4px;
 }
 
 .acoes-verticais{
@@ -290,27 +343,18 @@ transition:0.3s;
 background:#8a6a35;
 }
 
-/* CONTEÚDO */
-
+/* CONTEÚDO SCROLLS */
 .conteudo-ficha{
 display:flex;
 gap:14px;
 flex-wrap:wrap;
 }
 
-/* 3 COLUNAS */
-
 .tres-colunas{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:16px;
 align-items:start;
-}
-
-.coluna-ficha{
-display:flex;
-flex-direction:column;
-gap:14px;
 }
 
 .bloco-ficha{
@@ -382,8 +426,7 @@ transition:0.3s;
 background:#8a6a35;
 }
 
-/* KITS */
-
+/* COMPONENTE KITS */
 .kits-grid{
 display:flex;
 flex-wrap:wrap;
@@ -391,17 +434,52 @@ gap:14px;
 }
 
 .kit-item{
-width:260px;
+background: rgba(35, 35, 35, 0.95);
+border: 1px solid #6f5730;
+border-radius: 16px;
+padding: 14px;
+width: 320px;
+box-shadow: 0 0 12px rgba(0,0,0,0.5);
+display: flex;
+flex-direction: column;
+gap: 10px;
 }
 
 .kit-linha{
 display:flex;
-gap:5px;
-margin-bottom:10px;
+gap:8px;
+align-items: center;
+}
+
+.kit-linha input[type="text"] {
+flex: 1;
+height: 34px;
+}
+
+.kit-custo {
+width: 50px !important;
+height: 34px;
+text-align: center;
+font-weight: bold;
+}
+
+.excluir-kit {
+background: #5d4723;
+color: #fff;
+border: none;
+border-radius: 8px;
+height: 38px;
+font-weight: bold;
+cursor: pointer;
+transition: 0.3s;
+margin-top: 4px;
+}
+
+.excluir-kit:hover {
+background: #772222;
 }
 
 /* POPUPS */
-
 .popup{
 position:fixed;
 inset:0;
@@ -457,7 +535,6 @@ cursor:pointer;
 }
 
 /* DADO */
-
 #dice3d{
 position:fixed;
 top:20px;
@@ -472,40 +549,31 @@ animation:rolarDado 1s ease;
 }
 
 @keyframes rolarDado{
-
 0%{
 transform:rotate(0deg) scale(0.5);
 opacity:0;
 }
-
 50%{
 transform:rotate(720deg) scale(1.5);
 opacity:1;
 }
-
 100%{
 transform:rotate(1440deg) scale(1);
 opacity:0;
 }
-
 }
 
 /* RESPONSIVO */
-
 @media(max-width:1100px){
-
 .tres-colunas{
 grid-template-columns:1fr;
 }
-
 .topo{
 flex-direction:column;
 }
-
 .status-centro,
 .painel-esquerdo,
 .painel-direito{
 width:100%;
 }
-
 }
