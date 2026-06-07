@@ -1,4 +1,4 @@
-<!<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -42,12 +42,14 @@
         
         @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-        .btn-exportar, .btn-importar, .btn-voltar {
+        .btn-exportar, .btn-importar, .btn-voltar, .btn-sair {
             background: #4a6a8a; color: white; border: none; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 11px;
         }
-        .btn-exportar:hover, .btn-importar:hover, .btn-voltar:hover { background: #6a8aaa; }
+        .btn-exportar:hover, .btn-importar:hover, .btn-voltar:hover, .btn-sair:hover { background: #6a8aaa; }
         .btn-voltar { background: #d4af37; color: #111; font-weight: bold; display: none; }
         .btn-voltar:hover { background: #fff; }
+        .btn-sair { background: #8a4a4a; }
+        .btn-sair:hover { background: #aa4a4a; }
         
         /* Tela de Login */
         .login-screen {
@@ -263,6 +265,7 @@
                 <button class="btn-exportar" id="btnExportar">📤 Exportar</button>
                 <input type="file" id="fileImportar" accept=".json" style="display:none;">
                 <button class="btn-importar" id="btnImportar">📥 Importar</button>
+                <button class="btn-sair" id="btnSair">🚪 Sair</button>
             </div>
         </div>
 
@@ -300,9 +303,9 @@
                     <div class="col-atributos">
                         <div class="card">
                             <div class="grid-atributos">
-                                <div class="atributo"><span>💪 F</span><input type="number" id="forca" value="0"><input type="number" id="bonusForca" class="bonus" value="0"><button class="btn-atributo" data-nome="Força" data-id="forca">🎲</button></div>
-                                <div class="atributo"><span>🎯 H</span><input type="number" id="habilidade" value="0"><input type="number" id="bonusHabilidade" class="bonus" value="0"><button class="btn-atributo" data-nome="Habilidade" data-id="habilidade">🎲</button></div>
-                                <div class="atributo"><span>🛡️ R</span><input type="number" id="resistencia" value="0"><input type="number" id="bonusResistencia" class="bonus" value="0"><button class="btn-atributo" data-nome="Resistência" data-id="resistencia">🎲</button></div>
+                                <div class="atributo"><span>💪 F</span><input type="number" id="forca" value="3"><input type="number" id="bonusForca" class="bonus" value="0"><button class="btn-atributo" data-nome="Força" data-id="forca">🎲</button></div>
+                                <div class="atributo"><span>🎯 H</span><input type="number" id="habilidade" value="2"><input type="number" id="bonusHabilidade" class="bonus" value="0"><button class="btn-atributo" data-nome="Habilidade" data-id="habilidade">🎲</button></div>
+                                <div class="atributo"><span>🛡️ R</span><input type="number" id="resistencia" value="2"><input type="number" id="bonusResistencia" class="bonus" value="0"><button class="btn-atributo" data-nome="Resistência" data-id="resistencia">🎲</button></div>
                                 <div class="atributo"><span>⚔️ A</span><input type="number" id="armadura" value="0"><input type="number" id="bonusArmadura" class="bonus" value="0"><button class="btn-atributo" data-nome="Armadura" data-id="armadura">🎲</button></div>
                                 <div class="atributo"><span>🔮 PdF</span><input type="number" id="pdf" value="0"><input type="number" id="bonusPdf" class="bonus" value="0"><button class="btn-atributo" data-nome="PdF" data-id="pdf">🎲</button></div>
                             </div>
@@ -426,6 +429,37 @@
     const secretRollContainer = document.getElementById('secretRollContainer');
     const chatDiv = document.getElementById('chatMensagens');
     const diceAnim = document.getElementById('diceAnim');
+    
+    // =========================================
+    // FUNÇÃO DE DESLOGAR (SAIR)
+    // =========================================
+    async function deslogar() {
+        if (!confirm('Tem certeza que deseja sair? Você será desconectado da mesa.')) return;
+        
+        // Atualiza status de conectado no Firebase
+        if (currentPin && currentUserId) {
+            const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${currentUserId}`);
+            await update(jogadorRef, { conectado: false });
+        }
+        
+        // Limpa estado
+        currentPin = null;
+        currentUserId = null;
+        currentUserName = null;
+        isMaster = false;
+        isGM = false;
+        visualizandoId = null;
+        
+        // Volta para tela de login
+        loginScreen.style.display = 'flex';
+        fichaScreen.style.display = 'none';
+        
+        // Limpa campos de login
+        document.getElementById('pinInput').value = '';
+        document.getElementById('nomeInput').value = '';
+        
+        console.log('Usuário desconectado');
+    }
     
     // =========================================
     // FUNÇÕES DE CHAT
@@ -1106,6 +1140,7 @@
         
         document.getElementById('btnVoltarLista').onclick = voltarParaLista;
         document.getElementById('btnCriarNovaFicha').onclick = criarNovaFicha;
+        document.getElementById('btnSair').onclick = deslogar;
         
         escutarRolagens();
     }
