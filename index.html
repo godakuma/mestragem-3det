@@ -95,6 +95,10 @@
             background: #4a6a8a;
         }
         .login-card .btn-secundario:hover { background: #6a8aaa; }
+        .login-card .btn-mestre {
+            background: #8a6a35;
+        }
+        .login-card .btn-mestre:hover { background: #aa8a55; }
         .divider {
             text-align: center;
             margin: 15px 0;
@@ -102,12 +106,44 @@
         }
         
         /* Painel do Mestre */
-        .gm-panel { background: #1e1e1e; border: 1px dashed #d4af37; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: none; }
-        .gm-players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+        .gm-panel { background: #1e1e1e; border: 1px dashed #d4af37; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        .gm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .btn-criar-nova-ficha {
+            background: #5d4723;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .btn-criar-nova-ficha:hover { background: #8a6a35; }
+        .gm-players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-top: 10px; }
         .gm-player-card { background: #2a2a2a; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #4a6a8a; }
-        .gm-player-card span { font-size: 13px; font-weight: bold; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .btn-gm-view { background: #5d4723; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .gm-player-card .player-info { flex: 1; }
+        .gm-player-card .player-name { font-weight: bold; font-size: 13px; }
+        .gm-player-card .player-character { font-size: 11px; color: #aaa; }
+        .gm-player-card .player-badge {
+            font-size: 9px;
+            background: #4a6a8a;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+        .gm-player-card .player-badge.npc { background: #8a6a35; }
+        .gm-player-card .player-badge.mestre { background: #d4af37; color: #111; }
+        .btn-gm-view { background: #5d4723; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin: 0 2px; }
         .btn-gm-view:hover { background: #8a6a35; }
+        .btn-gm-delete { background: #772222; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; margin: 0 2px; }
+        .btn-gm-delete:hover { background: #992222; }
 
         .abas { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
         .aba-btn {
@@ -205,9 +241,11 @@
             <h2>🎲 3D&T Alpha</h2>
             <input type="text" id="pinInput" placeholder="Código da Mesa (6 dígitos)" maxlength="6">
             <input type="text" id="nomeInput" placeholder="Seu Nome">
-            <button id="btnCriarMesa">👑 Criar Nova Mesa</button>
+            
+            <button id="btnCriarMesa" class="btn-mestre">👑 Criar Nova Mesa (Serei o Mestre)</button>
             <div class="divider">ou</div>
-            <button id="btnEntrarMesa" class="btn-secundario">🎲 Entrar em Mesa Existente</button>
+            <button id="btnEntrarMestre" class="btn-mestre">👑 Entrar como Mestre em Mesa Existente</button>
+            <button id="btnEntrarJogador" class="btn-secundario">🎲 Entrar como Jogador</button>
         </div>
     </div>
 
@@ -229,7 +267,10 @@
         </div>
 
         <div class="gm-panel" id="gmPanel">
-            <h3>👥 Gerenciador de Fichas (Mestre)</h3>
+            <div class="gm-header">
+                <h3 style="margin:0;">👥 Gerenciador de Fichas (Mestre)</h3>
+                <button class="btn-criar-nova-ficha" id="btnCriarNovaFicha">➕ Criar Nova Ficha</button>
+            </div>
             <div class="gm-players-grid" id="gmPlayersGrid">
                 <p style="font-size: 12px; color: #666;">Aguardando jogadores conectarem...</p>
             </div>
@@ -350,15 +391,17 @@
     const firebaseConfig = {
         apiKey: "AIzaSyDLzqmIVK3AyExjc4hr6Jht4tLUnbHkCoE",
         authDomain: "mestragem-3det-alpha.firebaseapp.com",
+        databaseURL: "https://mestragem-3det-alpha-default-rtdb.firebaseio.com",
         projectId: "mestragem-3det-alpha",
         storageBucket: "mestragem-3det-alpha.firebasestorage.app",
         messagingSenderId: "290185604308",
         appId: "1:290185604308:web:4d9ab0d246569a72629f41",
         measurementId: "G-PRJZGM2E1G"
     };
-    
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+
+    let app = initializeApp(firebaseConfig);
+    let db = getDatabase(app);
+    console.log("✅ Firebase inicializado!");
     
     // =========================================
     // ESTADO GLOBAL
@@ -369,6 +412,7 @@
     let isMaster = false;
     let isGM = false;
     let visualizandoId = null;
+    let minhasFichas = []; // IDs das fichas que pertencem ao mestre (incluindo a principal)
     
     let fichaListas = { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
     
@@ -432,7 +476,7 @@
     }
     
     // =========================================
-    // ROLAGENS (LOCAIS)
+    // ROLAGENS
     // =========================================
     function animarDado() {
         if(!diceAnim) return;
@@ -644,6 +688,7 @@
             personagemNome: dados.nome || currentUserName,
             ficha: dados,
             isMaster: isMaster,
+            isNPC: !isMaster && !minhasFichas.includes(currentUserId) ? false : (currentUserId !== (isMaster ? currentUserId : null)),
             ultimaAtualizacao: serverTimestamp()
         });
         localStorage.setItem(`ficha_${currentPin}_${currentUserId}`, JSON.stringify(dados));
@@ -668,7 +713,7 @@
     }
     
     // =========================================
-    // FUNÇÕES DO MESTRE
+    // FUNÇÕES DE GERENCIAMENTO DE FICHAS (MESTRE)
     // =========================================
     function carregarListaJogadores() {
         if (!currentPin || !isMaster) return;
@@ -680,17 +725,76 @@
                 grid.innerHTML = '<p style="font-size: 12px; color: #666;">Nenhum jogador conectado na mesa.</p>';
                 return;
             }
-            grid.innerHTML = '';
+            
+            // Separar jogadores
+            const jogadoresList = [];
+            const npcsList = [];
+            let mestreInfo = null;
+            
             Object.entries(jogadores).forEach(([id, data]) => {
-                if (data.isMaster) return;
-                const card = document.createElement('div');
-                card.className = 'gm-player-card';
-                card.innerHTML = `
-                    <span><strong>${escapeHtml(data.nome || 'Jogador')}</strong><br><small style="color:#aaa;">${escapeHtml(data.personagemNome || 'Sem ficha')}</small></span>
-                    <button class="btn-gm-view" onclick="mestreVisualizarFicha('${id}')">Ver Ficha</button>
-                `;
-                grid.appendChild(card);
+                const item = {
+                    id: id,
+                    nome: data.nome || 'Anônimo',
+                    personagemNome: data.personagemNome || 'Sem ficha',
+                    isMaster: data.isMaster === true,
+                    isNPC: data.isNPC === true
+                };
+                if (data.isMaster) {
+                    mestreInfo = item;
+                } else if (data.isNPC) {
+                    npcsList.push(item);
+                } else {
+                    jogadoresList.push(item);
+                }
             });
+            
+            let html = '';
+            
+            if (mestreInfo) {
+                html += `<div class="gm-player-card" style="border-left-color: #d4af37;">
+                    <div class="player-info">
+                        <div class="player-name">${escapeHtml(mestreInfo.nome)} <span class="player-badge mestre">👑 Mestre</span></div>
+                        <div class="player-character">${escapeHtml(mestreInfo.personagemNome)}</div>
+                    </div>
+                    <div>
+                        <button class="btn-gm-view" onclick="mestreVisualizarFicha('${mestreInfo.id}')">Ver Ficha</button>
+                    </div>
+                </div>`;
+            }
+            
+            if (jogadoresList.length > 0) {
+                html += `<div style="grid-column: 1/-1; margin-top: 10px; margin-bottom: 5px;"><strong>🎲 Jogadores:</strong></div>`;
+                jogadoresList.forEach(j => {
+                    html += `<div class="gm-player-card">
+                        <div class="player-info">
+                            <div class="player-name">${escapeHtml(j.nome)}</div>
+                            <div class="player-character">${escapeHtml(j.personagemNome)}</div>
+                        </div>
+                        <div>
+                            <button class="btn-gm-view" onclick="mestreVisualizarFicha('${j.id}')">Ver Ficha</button>
+                            <button class="btn-gm-delete" onclick="excluirFicha('${j.id}')">🗑️</button>
+                        </div>
+                    </div>`;
+                });
+            }
+            
+            if (npcsList.length > 0) {
+                html += `<div style="grid-column: 1/-1; margin-top: 10px; margin-bottom: 5px;"><strong>📦 NPCs (Minhas Fichas):</strong></div>`;
+                npcsList.forEach(n => {
+                    html += `<div class="gm-player-card">
+                        <div class="player-info">
+                            <div class="player-name">${escapeHtml(n.nome)} <span class="player-badge npc">📦 NPC</span></div>
+                            <div class="player-character">${escapeHtml(n.personagemNome)}</div>
+                        </div>
+                        <div>
+                            <button class="btn-gm-view" onclick="mestreVisualizarFicha('${n.id}')">Ver Ficha</button>
+                            <button class="btn-gm-delete" onclick="excluirFicha('${n.id}')">🗑️</button>
+                        </div>
+                    </div>`;
+                });
+            }
+            
+            grid.innerHTML = html || '<p style="font-size: 12px; color: #666;">Nenhum jogador conectado na mesa.</p>';
         });
     }
     
@@ -708,6 +812,52 @@
             mestreVoltarMinhaFicha();
         }
     };
+    
+    window.excluirFicha = async function(idAlvo) {
+        if (!confirm('Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.')) return;
+        
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${idAlvo}`);
+        await set(jogadorRef, null);
+        
+        if (visualizandoId === idAlvo) {
+            mestreVoltarMinhaFicha();
+        }
+        
+        alert('Ficha excluída com sucesso!');
+    };
+    
+    function criarNovaFicha() {
+        const nomeFicha = prompt('Digite o nome do personagem para a nova ficha:', 'Novo Personagem');
+        if (!nomeFicha) return;
+        
+        const novoId = 'npc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+        const novaFicha = {
+            nome: nomeFicha,
+            forca: 3, bonusForca: 0,
+            habilidade: 2, bonusHabilidade: 0,
+            resistencia: 2, bonusResistencia: 0,
+            armadura: 0, bonusArmadura: 0,
+            pdf: 0, bonusPdf: 0,
+            pontos: 10, xp: 0, dinheiro: 0,
+            pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
+            vantagemUnicaNome: '', vantagemUnicaDesc: '',
+            listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
+        };
+        
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${novoId}`);
+        set(jogadorRef, {
+            nome: `NPC - ${nomeFicha}`,
+            personagemNome: nomeFicha,
+            ficha: novaFicha,
+            isMaster: false,
+            isNPC: true,
+            criadoPor: currentUserId,
+            ultimaAtualizacao: serverTimestamp()
+        });
+        
+        minhasFichas.push(novoId);
+        alert(`Ficha "${nomeFicha}" criada com sucesso!`);
+    }
     
     function mestreVoltarMinhaFicha() {
         visualizandoId = null;
@@ -753,6 +903,7 @@
         const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
         await set(jogadorRef, {
             nome: nome,
+            personagemNome: nome,
             isMaster: true,
             conectado: true
         });
@@ -762,7 +913,57 @@
         entrarNaSala();
     }
     
-    async function entrarMesa() {
+    async function entrarComoMestre() {
+        const pin = document.getElementById('pinInput').value.trim();
+        const nome = document.getElementById('nomeInput').value.trim();
+        if (!pin || pin.length !== 6) {
+            alert('Digite o código da mesa (6 dígitos)');
+            return;
+        }
+        if (!nome) {
+            alert('Digite seu nome');
+            return;
+        }
+        
+        const mesaRef = ref(db, `mesas/${pin}`);
+        const snapshot = await get(mesaRef);
+        if (!snapshot.exists()) {
+            alert('Mesa não encontrada. Verifique o código.');
+            return;
+        }
+        
+        const mesaData = snapshot.val();
+        if (mesaData.mestreId) {
+            alert('Esta mesa já possui um mestre. Você pode entrar como jogador.');
+            return;
+        }
+        
+        currentPin = pin;
+        currentUserName = nome;
+        currentUserId = 'mestre_' + Date.now();
+        isMaster = true;
+        isGM = true;
+        
+        await set(mesaRef, {
+            ...mesaData,
+            mestreId: currentUserId,
+            mestreNome: nome
+        });
+        
+        const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
+        await set(jogadorRef, {
+            nome: nome,
+            personagemNome: nome,
+            isMaster: true,
+            conectado: true
+        });
+        
+        onDisconnect(jogadorRef).update({ conectado: false });
+        
+        entrarNaSala();
+    }
+    
+    async function entrarComoJogador() {
         const pin = document.getElementById('pinInput').value.trim();
         const nome = document.getElementById('nomeInput').value.trim();
         if (!pin || pin.length !== 6) {
@@ -790,6 +991,7 @@
         const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
         await set(jogadorRef, {
             nome: nome,
+            personagemNome: nome,
             isMaster: false,
             conectado: true,
             entrouEm: serverTimestamp()
@@ -816,6 +1018,7 @@
         }
         
         document.getElementById('btnVoltarMinhaFicha').onclick = mestreVoltarMinhaFicha;
+        document.getElementById('btnCriarNovaFicha').onclick = criarNovaFicha;
         
         carregarFicha();
         escutarRolagens();
@@ -843,14 +1046,6 @@
             };
             reader.readAsDataURL(file);
         });
-    }
-    
-    const avatarSalvo = currentPin && currentUserId ? localStorage.getItem(`avatar_${currentPin}_${currentUserId}`) : null;
-    if (avatarSalvo && avatarBtn) {
-        const img = document.createElement('img');
-        img.src = avatarSalvo;
-        img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
-        avatarBtn.innerHTML = ''; avatarBtn.appendChild(img);
     }
     
     // =========================================
@@ -888,7 +1083,8 @@
     // EVENTOS
     // =========================================
     document.getElementById('btnCriarMesa').onclick = criarMesa;
-    document.getElementById('btnEntrarMesa').onclick = entrarMesa;
+    document.getElementById('btnEntrarMestre').onclick = entrarComoMestre;
+    document.getElementById('btnEntrarJogador').onclick = entrarComoJogador;
     
     document.querySelectorAll('.btn-atributo').forEach(btn => { btn.onclick = () => testarAtributo(btn.dataset.nome, btn.dataset.id); });
     document.getElementById('btnAtaqueCurto').onclick = ataqueCurto;
