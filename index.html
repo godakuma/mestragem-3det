@@ -436,13 +436,11 @@
     async function deslogar() {
         if (!confirm('Tem certeza que deseja sair? Você será desconectado da mesa.')) return;
         
-        // Atualiza status de conectado no Firebase
         if (currentPin && currentUserId) {
             const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${currentUserId}`);
             await update(jogadorRef, { conectado: false });
         }
         
-        // Limpa estado
         currentPin = null;
         currentUserId = null;
         currentUserName = null;
@@ -450,11 +448,9 @@
         isGM = false;
         visualizandoId = null;
         
-        // Volta para tela de login
         loginScreen.style.display = 'flex';
         fichaScreen.style.display = 'none';
         
-        // Limpa campos de login
         document.getElementById('pinInput').value = '';
         document.getElementById('nomeInput').value = '';
         
@@ -513,7 +509,7 @@
     }
     
     // =========================================
-    // ROLAGENS (para a ficha atual)
+    // ROLAGENS
     // =========================================
     function animarDado() {
         if(!diceAnim) return;
@@ -729,14 +725,16 @@
     }
     
     async function carregarFichaPorId(id) {
-        if (!currentPin) return;
+        if (!currentPin) {
+            console.error("Sem PIN");
+            return;
+        }
         visualizandoId = id;
         const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${id}`);
         const snapshot = await get(jogadorRef);
         if (snapshot.exists() && snapshot.val().ficha) {
             injetarDadosNaTela(snapshot.val().ficha);
         } else {
-            // Ficha vazia
             const fichaVazia = {
                 nome: 'Novo Personagem',
                 forca: 0, bonusForca: 0,
@@ -752,7 +750,6 @@
             injetarDadosNaTela(fichaVazia);
         }
         
-        // Mostrar editor, esconder lista
         gmPanel.style.display = 'none';
         editorFicha.style.display = 'block';
         document.getElementById('viewingText').style.display = 'inline-block';
@@ -786,7 +783,7 @@
             const npcsList = [];
             
             Object.entries(jogadores).forEach(([id, data]) => {
-                if (data.isMaster) return; // Mestre não aparece na lista
+                if (data.isMaster) return;
                 const item = {
                     id: id,
                     nome: data.nome || 'Anônimo',
@@ -840,7 +837,6 @@
         });
     }
     
-    // Função global para selecionar ficha (chamada pelo onclick do botão)
     window.selecionarFicha = async function(idAlvo) {
         console.log("Selecionando ficha:", idAlvo);
         await carregarFichaPorId(idAlvo);
@@ -980,7 +976,6 @@
             mestreNome: nome
         });
         
-        // O mestre não tem ficha própria, só registra na lista
         const mestreRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
         await set(mestreRef, {
             nome: nome,
@@ -1015,7 +1010,6 @@
         const mesaData = snapshot.val();
         
         if (mesaData.mestreId) {
-            // Verifica se é o mesmo mestre
             if (mesaData.mestreNome === nome) {
                 currentPin = pin;
                 currentUserName = nome;
@@ -1040,7 +1034,6 @@
             }
         }
         
-        // Não tem mestre ainda
         currentPin = pin;
         currentUserName = nome;
         currentUserId = 'mestre_' + Date.now();
@@ -1130,14 +1123,12 @@
             secretRollContainer.style.display = 'flex';
             carregarListaJogadores();
             
-            // Mestre não tem ficha própria, então não mostra editor automaticamente
             document.getElementById('viewingText').style.display = 'none';
             document.getElementById('btnVoltarLista').style.display = 'none';
         } else {
             gmPanel.style.display = 'none';
             editorFicha.style.display = 'block';
             secretRollContainer.style.display = 'none';
-            // Jogador vê sua própria ficha
             carregarFichaPorId(currentUserId);
         }
         
@@ -1183,7 +1174,6 @@
         return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
     
-    // Auto-save em inputs
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             if (currentPin && visualizandoId) salvarFichaAtual();
