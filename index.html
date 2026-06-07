@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<!<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D&T Alpha - Ficha Multiplayer</title>
+    <title>3D&T Alpha - Sistema de Fichas</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -244,22 +244,22 @@
             
             <button id="btnCriarMesa" class="btn-mestre">👑 Criar Nova Mesa (Serei o Mestre)</button>
             <div class="divider">ou</div>
-            <button id="btnEntrarMestre" class="btn-mestre">👑 Entrar como Mestre em Mesa Existente</button>
+            <button id="btnEntrarMestre" class="btn-mestre">👑 Entrar como Mestre</button>
             <button id="btnEntrarJogador" class="btn-secundario">🎲 Entrar como Jogador</button>
         </div>
     </div>
 
     <!-- TELA PRINCIPAL (FICHA) -->
     <div id="fichaScreen" style="display: none;">
-        <h1>🎲 3D&T Alpha - Ficha de Personagem</h1>
+        <h1>🎲 3D&T Alpha - Sistema de Fichas</h1>
         
         <div class="status-bar">
             <div>
                 <span class="mode-badge" id="statusText">📦 Modo Conectado</span>
-                <span class="viewing-badge" id="viewingText">👁️ Editando Ficha Alheia</span>
+                <span class="viewing-badge" id="viewingText">👁️ Editando Ficha</span>
             </div>
             <div>
-                <button class="btn-voltar" id="btnVoltarMinhaFicha">⬅️ Voltar para Minha Ficha</button>
+                <button class="btn-voltar" id="btnVoltarLista">⬅️ Voltar para Lista</button>
                 <button class="btn-exportar" id="btnExportar">📤 Exportar</button>
                 <input type="file" id="fileImportar" accept=".json" style="display:none;">
                 <button class="btn-importar" id="btnImportar">📥 Importar</button>
@@ -269,106 +269,109 @@
         <div class="gm-panel" id="gmPanel">
             <div class="gm-header">
                 <h3 style="margin:0;">👥 Gerenciador de Fichas (Mestre)</h3>
-                <button class="btn-criar-nova-ficha" id="btnCriarNovaFicha">➕ Criar Nova Ficha</button>
+                <button class="btn-criar-nova-ficha" id="btnCriarNovaFicha">➕ Criar Nova Ficha (NPC)</button>
             </div>
             <div class="gm-players-grid" id="gmPlayersGrid">
                 <p style="font-size: 12px; color: #666;">Aguardando jogadores conectarem...</p>
             </div>
         </div>
         
-        <div class="abas">
-            <button class="aba-btn ativa" data-aba="principal">📋 Principal</button>
-            <button class="aba-btn" data-aba="vantagens">✨ Vantagens</button>
-            <button class="aba-btn" data-aba="inventario">🎒 Inventário</button>
-            <button class="aba-btn" data-aba="magias">🔮 Magias</button>
-            <button class="aba-btn" data-aba="kits">📦 Kits</button>
-        </div>
-        
-        <div id="aba-principal" class="aba-conteudo ativa">
-            <div class="layout">
-                <div class="col-avatar">
-                    <input type="text" id="nomePersonagem" class="nome-input" placeholder="Nome do Personagem">
-                    <div class="avatar" id="avatarBtn">
-                        <div class="avatar-placeholder">🎲</div>
+        <!-- EDITOR DE FICHA (aparece quando seleciona uma ficha) -->
+        <div id="editorFicha" style="display: none;">
+            <div class="abas">
+                <button class="aba-btn ativa" data-aba="principal">📋 Principal</button>
+                <button class="aba-btn" data-aba="vantagens">✨ Vantagens</button>
+                <button class="aba-btn" data-aba="inventario">🎒 Inventário</button>
+                <button class="aba-btn" data-aba="magias">🔮 Magias</button>
+                <button class="aba-btn" data-aba="kits">📦 Kits</button>
+            </div>
+            
+            <div id="aba-principal" class="aba-conteudo ativa">
+                <div class="layout">
+                    <div class="col-avatar">
+                        <input type="text" id="nomePersonagem" class="nome-input" placeholder="Nome do Personagem">
+                        <div class="avatar" id="avatarBtn">
+                            <div class="avatar-placeholder">🎲</div>
+                        </div>
+                        <input type="file" id="uploadAvatar" accept="image/*" style="display:none;">
+                        <button class="btn-upload" id="btnAvatar">📷 Escolher Imagem</button>
                     </div>
-                    <input type="file" id="uploadAvatar" accept="image/*" style="display:none;">
-                    <button class="btn-upload" id="btnAvatar">📷 Escolher Imagem</button>
-                </div>
-                
-                <div class="col-atributos">
-                    <div class="card">
-                        <div class="grid-atributos">
-                            <div class="atributo"><span>💪 F</span><input type="number" id="forca" value="0"><input type="number" id="bonusForca" class="bonus" value="0"><button class="btn-atributo" data-nome="Força" data-id="forca">🎲</button></div>
-                            <div class="atributo"><span>🎯 H</span><input type="number" id="habilidade" value="0"><input type="number" id="bonusHabilidade" class="bonus" value="0"><button class="btn-atributo" data-nome="Habilidade" data-id="habilidade">🎲</button></div>
-                            <div class="atributo"><span>🛡️ R</span><input type="number" id="resistencia" value="0"><input type="number" id="bonusResistencia" class="bonus" value="0"><button class="btn-atributo" data-nome="Resistência" data-id="resistencia">🎲</button></div>
-                            <div class="atributo"><span>⚔️ A</span><input type="number" id="armadura" value="0"><input type="number" id="bonusArmadura" class="bonus" value="0"><button class="btn-atributo" data-nome="Armadura" data-id="armadura">🎲</button></div>
-                            <div class="atributo"><span>🔮 PdF</span><input type="number" id="pdf" value="0"><input type="number" id="bonusPdf" class="bonus" value="0"><button class="btn-atributo" data-nome="PdF" data-id="pdf">🎲</button></div>
+                    
+                    <div class="col-atributos">
+                        <div class="card">
+                            <div class="grid-atributos">
+                                <div class="atributo"><span>💪 F</span><input type="number" id="forca" value="0"><input type="number" id="bonusForca" class="bonus" value="0"><button class="btn-atributo" data-nome="Força" data-id="forca">🎲</button></div>
+                                <div class="atributo"><span>🎯 H</span><input type="number" id="habilidade" value="0"><input type="number" id="bonusHabilidade" class="bonus" value="0"><button class="btn-atributo" data-nome="Habilidade" data-id="habilidade">🎲</button></div>
+                                <div class="atributo"><span>🛡️ R</span><input type="number" id="resistencia" value="0"><input type="number" id="bonusResistencia" class="bonus" value="0"><button class="btn-atributo" data-nome="Resistência" data-id="resistencia">🎲</button></div>
+                                <div class="atributo"><span>⚔️ A</span><input type="number" id="armadura" value="0"><input type="number" id="bonusArmadura" class="bonus" value="0"><button class="btn-atributo" data-nome="Armadura" data-id="armadura">🎲</button></div>
+                                <div class="atributo"><span>🔮 PdF</span><input type="number" id="pdf" value="0"><input type="number" id="bonusPdf" class="bonus" value="0"><button class="btn-atributo" data-nome="PdF" data-id="pdf">🎲</button></div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-recursos">
+                            <div class="recurso"><label>❤️ PV</label><input type="number" id="pvTotal" placeholder="Total"><input type="number" id="pvAtual" placeholder="Atual"></div>
+                            <div class="recurso"><label>✨ PM</label><input type="number" id="pmTotal" placeholder="Total"><input type="number" id="pmAtual" placeholder="Atual"></div>
+                            <div class="recurso"><label>💰 Pontos</label><input type="number" id="pontos" value="10"></div>
+                            <div class="recurso"><label>⭐ XP</label><input type="number" id="xp" value="0"></div>
+                            <div class="recurso"><label>🪙 T$</label><input type="number" id="dinheiro" value="0"></div>
                         </div>
                     </div>
                     
-                    <div class="card-recursos">
-                        <div class="recurso"><label>❤️ PV</label><input type="number" id="pvTotal" placeholder="Total"><input type="number" id="pvAtual" placeholder="Atual"></div>
-                        <div class="recurso"><label>✨ PM</label><input type="number" id="pmTotal" placeholder="Total"><input type="number" id="pmAtual" placeholder="Atual"></div>
-                        <div class="recurso"><label>💰 Pontos</label><input type="number" id="pontos" value="10"></div>
-                        <div class="recurso"><label>⭐ XP</label><input type="number" id="xp" value="0"></div>
-                        <div class="recurso"><label>🪙 T$</label><input type="number" id="dinheiro" value="0"></div>
+                    <div class="col-roll">
+                        <h3>🎲 Rolagem Genérica</h3>
+                        <div class="roll-row"><label>Quantidade de dados:</label><input type="number" id="qtdDados" value="1" min="1" max="20"></div>
+                        <div class="roll-row"><label>Modificador fixo:</label><input type="number" id="modRoll" value="0"></div>
+                        <button class="btn-roll" id="btnRolarGenerico">🎲 Rolar Dados</button>
+                        
+                        <div id="secretRollContainer" class="secret-row" style="display: none;">
+                            <input type="checkbox" id="chkSecretRoll"> 🕵️ Rolar em Segredo (Ocultar da Mesa)
+                        </div>
                     </div>
                 </div>
                 
-                <div class="col-roll">
-                    <h3>🎲 Rolagem Genérica</h3>
-                    <div class="roll-row"><label>Quantidade de dados:</label><input type="number" id="qtdDados" value="1" min="1" max="20"></div>
-                    <div class="roll-row"><label>Modificador fixo:</label><input type="number" id="modRoll" value="0"></div>
-                    <button class="btn-roll" id="btnRolarGenerico">🎲 Rolar Dados</button>
-                    
-                    <div id="secretRollContainer" class="secret-row" style="display: none;">
-                        <input type="checkbox" id="chkSecretRoll"> 🕵️ Rolar em Segredo (Ocultar da Mesa)
+                <div class="botoes-acao">
+                    <button class="btn-acao" id="btnAtaqueCurto">⚔️ Ataque Curto</button>
+                    <button class="btn-acao" id="btnAtaqueDistancia">🏹 Ataque Distância</button>
+                    <button class="btn-acao" id="btnDefesa">🛡️ Defesa</button>
+                </div>
+                
+                <div class="card" style="margin-top: 15px;">
+                    <h3>🌟 Vantagem Única</h3>
+                    <div class="item">
+                        <div class="item-linha">
+                            <input type="text" id="vantagemUnicaNome" placeholder="Nome da Vantagem Única">
+                            <button class="btn-desc" id="btnToggleVantagemUnica">📖</button>
+                        </div>
+                        <div id="vantagemUnicaDescEditor" style="display:none;" class="desc-editor">
+                            <textarea id="vantagemUnicaDesc" rows="3" placeholder="Descrição da Vantagem Única..."></textarea>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <div class="botoes-acao">
-                <button class="btn-acao" id="btnAtaqueCurto">⚔️ Ataque Curto</button>
-                <button class="btn-acao" id="btnAtaqueDistancia">🏹 Ataque Distância</button>
-                <button class="btn-acao" id="btnDefesa">🛡️ Defesa</button>
-            </div>
-            
-            <div class="card" style="margin-top: 15px;">
-                <h3>🌟 Vantagem Única</h3>
-                <div class="item">
-                    <div class="item-linha">
-                        <input type="text" id="vantagemUnicaNome" placeholder="Nome da Vantagem Única">
-                        <button class="btn-desc" id="btnToggleVantagemUnica">📖</button>
-                    </div>
-                    <div id="vantagemUnicaDescEditor" style="display:none;" class="desc-editor">
-                        <textarea id="vantagemUnicaDesc" rows="3" placeholder="Descrição da Vantagem Única..."></textarea>
-                    </div>
+            <div id="aba-vantagens" class="aba-conteudo">
+                <div class="grid-3">
+                    <div class="card-lista"><h3>✅ Vantagens</h3><div id="vantagensLista" class="lista"></div><button class="btn-add" id="addVantagem">+ Adicionar Vantagem</button></div>
+                    <div class="card-lista"><h3>❌ Desvantagens</h3><div id="desvantagensLista" class="lista"></div><button class="btn-add" id="addDesvantagem">+ Adicionar Desvantagem</button></div>
+                    <div class="card-lista"><h3>⚡ Perícias</h3><div id="periciasLista" class="lista"></div><button class="btn-add" id="addPericia">+ Adicionar Perícia</button></div>
                 </div>
             </div>
-        </div>
-        
-        <div id="aba-vantagens" class="aba-conteudo">
-            <div class="grid-3">
-                <div class="card-lista"><h3>✅ Vantagens</h3><div id="vantagensLista" class="lista"></div><button class="btn-add" id="addVantagem">+ Adicionar Vantagem</button></div>
-                <div class="card-lista"><h3>❌ Desvantagens</h3><div id="desvantagensLista" class="lista"></div><button class="btn-add" id="addDesvantagem">+ Adicionar Desvantagem</button></div>
-                <div class="card-lista"><h3>⚡ Perícias</h3><div id="periciasLista" class="lista"></div><button class="btn-add" id="addPericia">+ Adicionar Perícia</button></div>
+            
+            <div id="aba-inventario" class="aba-conteudo">
+                <div class="grid-3">
+                    <div class="card-lista"><h3>📦 Itens</h3><div id="itensLista" class="lista"></div><button class="btn-add" id="addItem">+ Adicionar Item</button></div>
+                    <div class="card-lista"><h3>⚔️ Equipamentos</h3><div id="equipamentosLista" class="lista"></div><button class="btn-add" id="addEquipamento">+ Adicionar Equipamento</button></div>
+                    <div class="card-lista"><h3>💥 Tipos de Dano</h3><div id="tiposDanoLista" class="lista"></div><button class="btn-add" id="addTipoDano">+ Adicionar Tipo de Dano</button></div>
+                </div>
             </div>
-        </div>
-        
-        <div id="aba-inventario" class="aba-conteudo">
-            <div class="grid-3">
-                <div class="card-lista"><h3>📦 Itens</h3><div id="itensLista" class="lista"></div><button class="btn-add" id="addItem">+ Adicionar Item</button></div>
-                <div class="card-lista"><h3>⚔️ Equipamentos</h3><div id="equipamentosLista" class="lista"></div><button class="btn-add" id="addEquipamento">+ Adicionar Equipamento</button></div>
-                <div class="card-lista"><h3>💥 Tipos de Dano</h3><div id="tiposDanoLista" class="lista"></div><button class="btn-add" id="addTipoDano">+ Adicionar Tipo de Dano</button></div>
+            
+            <div id="aba-magias" class="aba-conteudo">
+                <div class="card-full"><h3>🔮 Magias</h3><div id="magiasLista" class="lista"></div><button class="btn-add" id="addMagia">+ Adicionar Magia</button></div>
             </div>
-        </div>
-        
-        <div id="aba-magias" class="aba-conteudo">
-            <div class="card-full"><h3>🔮 Magias</h3><div id="magiasLista" class="lista"></div><button class="btn-add" id="addMagia">+ Adicionar Magia</button></div>
-        </div>
-        
-        <div id="aba-kits" class="aba-conteudo">
-            <div class="card-full"><h3>📦 Kits</h3><div id="kitsLista" class="lista"></div><button class="btn-add" id="addKit">+ Adicionar Kit</button></div>
+            
+            <div id="aba-kits" class="aba-conteudo">
+                <div class="card-full"><h3>📦 Kits</h3><div id="kitsLista" class="lista"></div><button class="btn-add" id="addKit">+ Adicionar Kit</button></div>
+            </div>
         </div>
         
         <div class="chat">
@@ -411,8 +414,7 @@
     let currentUserName = null;
     let isMaster = false;
     let isGM = false;
-    let visualizandoId = null;
-    let minhasFichas = []; // IDs das fichas que pertencem ao mestre (incluindo a principal)
+    let visualizandoId = null; // ID da ficha que está sendo editada
     
     let fichaListas = { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
     
@@ -420,6 +422,7 @@
     const loginScreen = document.getElementById('loginScreen');
     const fichaScreen = document.getElementById('fichaScreen');
     const gmPanel = document.getElementById('gmPanel');
+    const editorFicha = document.getElementById('editorFicha');
     const secretRollContainer = document.getElementById('secretRollContainer');
     const chatDiv = document.getElementById('chatMensagens');
     const diceAnim = document.getElementById('diceAnim');
@@ -476,7 +479,7 @@
     }
     
     // =========================================
-    // ROLAGENS
+    // ROLAGENS (para a ficha atual)
     // =========================================
     function animarDado() {
         if(!diceAnim) return;
@@ -500,7 +503,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFicha();
+        salvarFichaAtual();
     }
     
     function ataqueCurto() {
@@ -516,7 +519,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFicha();
+        salvarFichaAtual();
     }
     
     function ataqueDistancia() {
@@ -532,7 +535,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFicha();
+        salvarFichaAtual();
     }
     
     function defesa() {
@@ -548,7 +551,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFicha();
+        salvarFichaAtual();
     }
     
     function rolarGenerico() {
@@ -566,7 +569,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFicha();
+        salvarFichaAtual();
     }
     
     // =========================================
@@ -597,22 +600,22 @@
     window.adicionarItemLista = function(tipo, containerId) {
         fichaListas[tipo].push({ nome: '', valor: '', desc: '', visivel: false });
         renderizarLista(tipo, containerId);
-        salvarFicha();
+        salvarFichaAtual();
     };
     window.removerItemLista = function(tipo, index, containerId) {
         fichaListas[tipo].splice(index, 1);
         renderizarLista(tipo, containerId);
-        salvarFicha();
+        salvarFichaAtual();
     };
     window.toggleDescLista = function(tipo, index) {
         fichaListas[tipo][index].visivel = !fichaListas[tipo][index].visivel;
         const el = document.getElementById(`desc-${tipo}-${index}`);
         if(el) el.style.display = fichaListas[tipo][index].visivel ? 'block' : 'none';
-        salvarFicha();
+        salvarFichaAtual();
     };
     window.atualizarItemLista = function(tipo, index, campo, valor) {
         fichaListas[tipo][index][campo] = valor;
-        salvarFicha();
+        salvarFichaAtual();
     };
     
     // =========================================
@@ -679,37 +682,55 @@
         renderizarLista('kits', 'kitsLista');
     }
     
-    async function salvarFicha() {
+    async function salvarFichaAtual() {
+        if (!currentPin || !visualizandoId) return;
         const dados = extrairDadosDaTela();
-        if (!currentPin) return;
-        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${currentUserId}`);
-        await set(jogadorRef, {
-            nome: currentUserName,
-            personagemNome: dados.nome || currentUserName,
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${visualizandoId}`);
+        await update(jogadorRef, {
+            personagemNome: dados.nome || 'Personagem',
             ficha: dados,
-            isMaster: isMaster,
-            isNPC: !isMaster && !minhasFichas.includes(currentUserId) ? false : (currentUserId !== (isMaster ? currentUserId : null)),
             ultimaAtualizacao: serverTimestamp()
         });
-        localStorage.setItem(`ficha_${currentPin}_${currentUserId}`, JSON.stringify(dados));
+        localStorage.setItem(`ficha_${currentPin}_${visualizandoId}`, JSON.stringify(dados));
     }
     
-    async function carregarFicha() {
-        if (!currentPin || !currentUserId) return;
-        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${currentUserId}`);
+    async function carregarFichaPorId(id) {
+        visualizandoId = id;
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${id}`);
         const snapshot = await get(jogadorRef);
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            if (data.ficha) {
-                injetarDadosNaTela(data.ficha);
-            }
+        if (snapshot.exists() && snapshot.val().ficha) {
+            injetarDadosNaTela(snapshot.val().ficha);
         } else {
-            const localKey = `ficha_${currentPin}_${currentUserId}`;
-            const localDados = localStorage.getItem(localKey);
-            if (localDados) {
-                injetarDadosNaTela(JSON.parse(localDados));
-            }
+            // Ficha vazia
+            const fichaVazia = {
+                nome: 'Novo Personagem',
+                forca: 3, bonusForca: 0,
+                habilidade: 2, bonusHabilidade: 0,
+                resistencia: 2, bonusResistencia: 0,
+                armadura: 0, bonusArmadura: 0,
+                pdf: 0, bonusPdf: 0,
+                pontos: 10, xp: 0, dinheiro: 0,
+                pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
+                vantagemUnicaNome: '', vantagemUnicaDesc: '',
+                listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
+            };
+            injetarDadosNaTela(fichaVazia);
         }
+        
+        // Mostrar editor, esconder lista
+        gmPanel.style.display = 'none';
+        editorFicha.style.display = 'block';
+        document.getElementById('viewingText').style.display = 'inline-block';
+        document.getElementById('btnVoltarLista').style.display = 'inline-block';
+    }
+    
+    function voltarParaLista() {
+        visualizandoId = null;
+        gmPanel.style.display = 'block';
+        editorFicha.style.display = 'none';
+        document.getElementById('viewingText').style.display = 'none';
+        document.getElementById('btnVoltarLista').style.display = 'none';
+        carregarListaJogadores();
     }
     
     // =========================================
@@ -726,22 +747,18 @@
                 return;
             }
             
-            // Separar jogadores
             const jogadoresList = [];
             const npcsList = [];
-            let mestreInfo = null;
             
             Object.entries(jogadores).forEach(([id, data]) => {
+                if (data.isMaster) return; // Mestre não aparece na lista
                 const item = {
                     id: id,
                     nome: data.nome || 'Anônimo',
                     personagemNome: data.personagemNome || 'Sem ficha',
-                    isMaster: data.isMaster === true,
                     isNPC: data.isNPC === true
                 };
-                if (data.isMaster) {
-                    mestreInfo = item;
-                } else if (data.isNPC) {
+                if (data.isNPC) {
                     npcsList.push(item);
                 } else {
                     jogadoresList.push(item);
@@ -750,20 +767,8 @@
             
             let html = '';
             
-            if (mestreInfo) {
-                html += `<div class="gm-player-card" style="border-left-color: #d4af37;">
-                    <div class="player-info">
-                        <div class="player-name">${escapeHtml(mestreInfo.nome)} <span class="player-badge mestre">👑 Mestre</span></div>
-                        <div class="player-character">${escapeHtml(mestreInfo.personagemNome)}</div>
-                    </div>
-                    <div>
-                        <button class="btn-gm-view" onclick="mestreVisualizarFicha('${mestreInfo.id}')">Ver Ficha</button>
-                    </div>
-                </div>`;
-            }
-            
             if (jogadoresList.length > 0) {
-                html += `<div style="grid-column: 1/-1; margin-top: 10px; margin-bottom: 5px;"><strong>🎲 Jogadores:</strong></div>`;
+                html += `<div style="grid-column: 1/-1; margin-top: 5px; margin-bottom: 5px;"><strong>🎲 Jogadores:</strong></div>`;
                 jogadoresList.forEach(j => {
                     html += `<div class="gm-player-card">
                         <div class="player-info">
@@ -771,15 +776,17 @@
                             <div class="player-character">${escapeHtml(j.personagemNome)}</div>
                         </div>
                         <div>
-                            <button class="btn-gm-view" onclick="mestreVisualizarFicha('${j.id}')">Ver Ficha</button>
+                            <button class="btn-gm-view" onclick="selecionarFicha('${j.id}')">Ver/Editar</button>
                             <button class="btn-gm-delete" onclick="excluirFicha('${j.id}')">🗑️</button>
                         </div>
                     </div>`;
                 });
+            } else {
+                html += `<div style="grid-column: 1/-1; color: #666; padding: 10px; text-align: center;">Nenhum jogador conectado.</div>`;
             }
             
             if (npcsList.length > 0) {
-                html += `<div style="grid-column: 1/-1; margin-top: 10px; margin-bottom: 5px;"><strong>📦 NPCs (Minhas Fichas):</strong></div>`;
+                html += `<div style="grid-column: 1/-1; margin-top: 15px; margin-bottom: 5px;"><strong>📦 NPCs (Minhas Fichas):</strong></div>`;
                 npcsList.forEach(n => {
                     html += `<div class="gm-player-card">
                         <div class="player-info">
@@ -787,30 +794,19 @@
                             <div class="player-character">${escapeHtml(n.personagemNome)}</div>
                         </div>
                         <div>
-                            <button class="btn-gm-view" onclick="mestreVisualizarFicha('${n.id}')">Ver Ficha</button>
+                            <button class="btn-gm-view" onclick="selecionarFicha('${n.id}')">Ver/Editar</button>
                             <button class="btn-gm-delete" onclick="excluirFicha('${n.id}')">🗑️</button>
                         </div>
                     </div>`;
                 });
             }
             
-            grid.innerHTML = html || '<p style="font-size: 12px; color: #666;">Nenhum jogador conectado na mesa.</p>';
+            grid.innerHTML = html || '<p style="font-size: 12px; color: #666;">Nenhuma ficha disponível.</p>';
         });
     }
     
-    window.mestreVisualizarFicha = async function(idAlvo) {
-        visualizandoId = idAlvo;
-        document.getElementById('viewingText').style.display = 'inline-block';
-        document.getElementById('btnVoltarMinhaFicha').style.display = 'inline-block';
-        
-        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${idAlvo}`);
-        const snapshot = await get(jogadorRef);
-        if (snapshot.exists() && snapshot.val().ficha) {
-            injetarDadosNaTela(snapshot.val().ficha);
-        } else {
-            alert('Este jogador ainda não tem ficha.');
-            mestreVoltarMinhaFicha();
-        }
+    window.selecionarFicha = async function(idAlvo) {
+        await carregarFichaPorId(idAlvo);
     };
     
     window.excluirFicha = async function(idAlvo) {
@@ -820,7 +816,7 @@
         await set(jogadorRef, null);
         
         if (visualizandoId === idAlvo) {
-            mestreVoltarMinhaFicha();
+            voltarParaLista();
         }
         
         alert('Ficha excluída com sucesso!');
@@ -855,16 +851,63 @@
             ultimaAtualizacao: serverTimestamp()
         });
         
-        minhasFichas.push(novoId);
         alert(`Ficha "${nomeFicha}" criada com sucesso!`);
     }
     
-    function mestreVoltarMinhaFicha() {
-        visualizandoId = null;
-        document.getElementById('viewingText').style.display = 'none';
-        document.getElementById('btnVoltarMinhaFicha').style.display = 'none';
-        carregarFicha();
+    // =========================================
+    // AVATAR
+    // =========================================
+    const avatarBtn = document.getElementById('avatarBtn');
+    const avatarUpload = document.getElementById('uploadAvatar');
+    if (avatarBtn && avatarUpload) {
+        avatarBtn.onclick = () => avatarUpload.click();
+        document.getElementById('btnAvatar').onclick = () => avatarUpload.click();
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.createElement('img');
+                img.src = ev.target.result;
+                img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
+                avatarBtn.innerHTML = ''; avatarBtn.appendChild(img);
+                localStorage.setItem(`avatar_${currentPin}_${visualizandoId}`, ev.target.result);
+                salvarFichaAtual();
+            };
+            reader.readAsDataURL(file);
+        });
     }
+    
+    // =========================================
+    // EXPORTAR/IMPORTAR
+    // =========================================
+    document.getElementById('btnExportar').onclick = () => {
+        if (!visualizandoId) return;
+        const dados = extrairDadosDaTela();
+        const dataStr = JSON.stringify(dados, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `ficha_${document.getElementById('nomePersonagem').value || 'personagem'}.json`; a.click();
+        URL.revokeObjectURL(url);
+    };
+    
+    document.getElementById('btnImportar').onclick = () => document.getElementById('fileImportar').click();
+    document.getElementById('fileImportar').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const dados = JSON.parse(ev.target.result);
+                injetarDadosNaTela(dados);
+                salvarFichaAtual();
+                alert('Ficha importada com sucesso!');
+            } catch(err) { alert('Erro ao importar arquivo'); }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
     
     // =========================================
     // CRIAÇÃO E ENTRADA NA MESA
@@ -900,15 +943,15 @@
             mestreNome: nome
         });
         
-        const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
-        await set(jogadorRef, {
+        // O mestre não tem ficha própria, só registra na lista
+        const mestreRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
+        await set(mestreRef, {
             nome: nome,
-            personagemNome: nome,
             isMaster: true,
             conectado: true
         });
         
-        onDisconnect(jogadorRef).update({ conectado: false });
+        onDisconnect(mestreRef).update({ conectado: false });
         
         entrarNaSala();
     }
@@ -933,11 +976,34 @@
         }
         
         const mesaData = snapshot.val();
+        
         if (mesaData.mestreId) {
-            alert('Esta mesa já possui um mestre. Você pode entrar como jogador.');
-            return;
+            // Verifica se é o mesmo mestre
+            if (mesaData.mestreNome === nome) {
+                currentPin = pin;
+                currentUserName = nome;
+                currentUserId = mesaData.mestreId;
+                isMaster = true;
+                isGM = true;
+                
+                const mestreRef = ref(db, `mesas/${pin}/jogadores/${mesaData.mestreId}`);
+                await set(mestreRef, {
+                    nome: nome,
+                    isMaster: true,
+                    conectado: true
+                });
+                
+                onDisconnect(mestreRef).update({ conectado: false });
+                
+                entrarNaSala();
+                return;
+            } else {
+                alert(`Esta mesa já possui um mestre (${mesaData.mestreNome}). Você pode entrar como jogador.`);
+                return;
+            }
         }
         
+        // Não tem mestre ainda
         currentPin = pin;
         currentUserName = nome;
         currentUserId = 'mestre_' + Date.now();
@@ -950,15 +1016,14 @@
             mestreNome: nome
         });
         
-        const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
-        await set(jogadorRef, {
+        const mestreRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
+        await set(mestreRef, {
             nome: nome,
-            personagemNome: nome,
             isMaster: true,
             conectado: true
         });
         
-        onDisconnect(jogadorRef).update({ conectado: false });
+        onDisconnect(mestreRef).update({ conectado: false });
         
         entrarNaSala();
     }
@@ -988,10 +1053,24 @@
         isMaster = false;
         isGM = false;
         
+        const fichaVazia = {
+            nome: nome,
+            forca: 3, bonusForca: 0,
+            habilidade: 2, bonusHabilidade: 0,
+            resistencia: 2, bonusResistencia: 0,
+            armadura: 0, bonusArmadura: 0,
+            pdf: 0, bonusPdf: 0,
+            pontos: 10, xp: 0, dinheiro: 0,
+            pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
+            vantagemUnicaNome: '', vantagemUnicaDesc: '',
+            listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
+        };
+        
         const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
         await set(jogadorRef, {
             nome: nome,
             personagemNome: nome,
+            ficha: fichaVazia,
             isMaster: false,
             conectado: true,
             entrouEm: serverTimestamp()
@@ -1010,74 +1089,26 @@
         
         if (isMaster) {
             gmPanel.style.display = 'block';
+            editorFicha.style.display = 'none';
             secretRollContainer.style.display = 'flex';
             carregarListaJogadores();
+            
+            // Mestre não tem ficha própria, então não mostra editor automaticamente
+            document.getElementById('viewingText').style.display = 'none';
+            document.getElementById('btnVoltarLista').style.display = 'none';
         } else {
             gmPanel.style.display = 'none';
+            editorFicha.style.display = 'block';
             secretRollContainer.style.display = 'none';
+            // Jogador vê sua própria ficha
+            carregarFichaPorId(currentUserId);
         }
         
-        document.getElementById('btnVoltarMinhaFicha').onclick = mestreVoltarMinhaFicha;
+        document.getElementById('btnVoltarLista').onclick = voltarParaLista;
         document.getElementById('btnCriarNovaFicha').onclick = criarNovaFicha;
         
-        carregarFicha();
         escutarRolagens();
     }
-    
-    // =========================================
-    // AVATAR
-    // =========================================
-    const avatarBtn = document.getElementById('avatarBtn');
-    const avatarUpload = document.getElementById('uploadAvatar');
-    if (avatarBtn && avatarUpload) {
-        avatarBtn.onclick = () => avatarUpload.click();
-        document.getElementById('btnAvatar').onclick = () => avatarUpload.click();
-        avatarUpload.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = document.createElement('img');
-                img.src = ev.target.result;
-                img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
-                avatarBtn.innerHTML = ''; avatarBtn.appendChild(img);
-                localStorage.setItem(`avatar_${currentPin}_${currentUserId}`, ev.target.result);
-                salvarFicha();
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-    
-    // =========================================
-    // EXPORTAR/IMPORTAR
-    // =========================================
-    document.getElementById('btnExportar').onclick = () => {
-        salvarFicha();
-        const dados = extrairDadosDaTela();
-        const dataStr = JSON.stringify(dados, null, 2);
-        const blob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `ficha_${Date.now()}.json`; a.click();
-        URL.revokeObjectURL(url);
-    };
-    
-    document.getElementById('btnImportar').onclick = () => document.getElementById('fileImportar').click();
-    document.getElementById('fileImportar').onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                const dados = JSON.parse(ev.target.result);
-                injetarDadosNaTela(dados);
-                salvarFicha();
-                alert('Ficha importada com sucesso!');
-            } catch(err) { alert('Erro ao importar arquivo'); }
-        };
-        reader.readAsText(file);
-        e.target.value = '';
-    };
     
     // =========================================
     // EVENTOS
@@ -1117,7 +1148,7 @@
     // Auto-save em inputs
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-            if (currentPin) salvarFicha();
+            if (currentPin && visualizandoId) salvarFichaAtual();
         }
     });
     
