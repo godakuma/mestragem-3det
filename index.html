@@ -314,7 +314,7 @@
                         <div class="card-recursos">
                             <div class="recurso"><label>❤️ PV</label><input type="number" id="pvTotal" placeholder="Total"><input type="number" id="pvAtual" placeholder="Atual"></div>
                             <div class="recurso"><label>✨ PM</label><input type="number" id="pmTotal" placeholder="Total"><input type="number" id="pmAtual" placeholder="Atual"></div>
-                            <div class="recurso"><label>💰 Pontos</label><input type="number" id="pontos" value="10"></div>
+                            <div class="recurso"><label>💰 Pontos</label><input type="number" id="pontos" value="0"></div>
                             <div class="recurso"><label>⭐ XP</label><input type="number" id="xp" value="0"></div>
                             <div class="recurso"><label>🪙 T$</label><input type="number" id="dinheiro" value="0"></div>
                         </div>
@@ -417,7 +417,7 @@
     let currentUserName = null;
     let isMaster = false;
     let isGM = false;
-    let visualizandoId = null; // ID da ficha que está sendo editada
+    let visualizandoId = null;
     
     let fichaListas = { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
     
@@ -651,6 +651,22 @@
     // =========================================
     // FUNÇÕES DA FICHA
     // =========================================
+    function getFichaVazia(nome = 'Novo Personagem') {
+        return {
+            nome: nome,
+            forca: 0, bonusForca: 0,
+            habilidade: 0, bonusHabilidade: 0,
+            resistencia: 0, bonusResistencia: 0,
+            armadura: 0, bonusArmadura: 0,
+            pdf: 0, bonusPdf: 0,
+            pontos: 0, xp: 0, dinheiro: 0,
+            pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
+            vantagemUnicaNome: '', vantagemUnicaDesc: '',
+            avatarSrc: '',
+            listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
+        };
+    }
+    
     function extrairDadosDaTela() {
         return {
             nome: document.getElementById('nomePersonagem').value,
@@ -673,32 +689,48 @@
             pmAtual: document.getElementById('pmAtual').value,
             vantagemUnicaNome: document.getElementById('vantagemUnicaNome').value,
             vantagemUnicaDesc: document.getElementById('vantagemUnicaDesc').value,
+            avatarSrc: document.getElementById('avatarBtn').querySelector('img')?.src || '',
             listas: fichaListas
         };
     }
     
     function injetarDadosNaTela(f) {
         if (!f) return;
-        if (f.nome !== undefined) document.getElementById('nomePersonagem').value = f.nome;
-        if (f.forca !== undefined) document.getElementById('forca').value = f.forca;
-        if (f.bonusForca !== undefined) document.getElementById('bonusForca').value = f.bonusForca;
-        if (f.habilidade !== undefined) document.getElementById('habilidade').value = f.habilidade;
-        if (f.bonusHabilidade !== undefined) document.getElementById('bonusHabilidade').value = f.bonusHabilidade;
-        if (f.resistencia !== undefined) document.getElementById('resistencia').value = f.resistencia;
-        if (f.bonusResistencia !== undefined) document.getElementById('bonusResistencia').value = f.bonusResistencia;
-        if (f.armadura !== undefined) document.getElementById('armadura').value = f.armadura;
-        if (f.bonusArmadura !== undefined) document.getElementById('bonusArmadura').value = f.bonusArmadura;
-        if (f.pdf !== undefined) document.getElementById('pdf').value = f.pdf;
-        if (f.bonusPdf !== undefined) document.getElementById('bonusPdf').value = f.bonusPdf;
-        if (f.pontos !== undefined) document.getElementById('pontos').value = f.pontos;
-        if (f.xp !== undefined) document.getElementById('xp').value = f.xp;
-        if (f.dinheiro !== undefined) document.getElementById('dinheiro').value = f.dinheiro;
-        if (f.pvTotal !== undefined) document.getElementById('pvTotal').value = f.pvTotal;
-        if (f.pvAtual !== undefined) document.getElementById('pvAtual').value = f.pvAtual;
-        if (f.pmTotal !== undefined) document.getElementById('pmTotal').value = f.pmTotal;
-        if (f.pmAtual !== undefined) document.getElementById('pmAtual').value = f.pmAtual;
-        if (f.vantagemUnicaNome !== undefined) document.getElementById('vantagemUnicaNome').value = f.vantagemUnicaNome;
-        if (f.vantagemUnicaDesc !== undefined) document.getElementById('vantagemUnicaDesc').value = f.vantagemUnicaDesc;
+        document.getElementById('nomePersonagem').value = f.nome || '';
+        document.getElementById('forca').value = f.forca ?? 0;
+        document.getElementById('bonusForca').value = f.bonusForca ?? 0;
+        document.getElementById('habilidade').value = f.habilidade ?? 0;
+        document.getElementById('bonusHabilidade').value = f.bonusHabilidade ?? 0;
+        document.getElementById('resistencia').value = f.resistencia ?? 0;
+        document.getElementById('bonusResistencia').value = f.bonusResistencia ?? 0;
+        document.getElementById('armadura').value = f.armadura ?? 0;
+        document.getElementById('bonusArmadura').value = f.bonusArmadura ?? 0;
+        document.getElementById('pdf').value = f.pdf ?? 0;
+        document.getElementById('bonusPdf').value = f.bonusPdf ?? 0;
+        document.getElementById('pontos').value = f.pontos ?? 0;
+        document.getElementById('xp').value = f.xp ?? 0;
+        document.getElementById('dinheiro').value = f.dinheiro ?? 0;
+        document.getElementById('pvTotal').value = f.pvTotal || '';
+        document.getElementById('pvAtual').value = f.pvAtual || '';
+        document.getElementById('pmTotal').value = f.pmTotal || '';
+        document.getElementById('pmAtual').value = f.pmAtual || '';
+        document.getElementById('vantagemUnicaNome').value = f.vantagemUnicaNome || '';
+        document.getElementById('vantagemUnicaDesc').value = f.vantagemUnicaDesc || '';
+        
+        // Avatar
+        if (f.avatarSrc) {
+            const avatarBtn = document.getElementById('avatarBtn');
+            avatarBtn.innerHTML = '';
+            const img = document.createElement('img');
+            img.src = f.avatarSrc;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.objectFit = 'cover';
+            avatarBtn.appendChild(img);
+        } else {
+            const avatarBtn = document.getElementById('avatarBtn');
+            avatarBtn.innerHTML = '<div class="avatar-placeholder">🎲</div>';
+        }
         
         fichaListas = f.listas || { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
         
@@ -721,7 +753,6 @@
             ficha: dados,
             ultimaAtualizacao: serverTimestamp()
         });
-        localStorage.setItem(`ficha_${currentPin}_${visualizandoId}`, JSON.stringify(dados));
     }
     
     async function carregarFichaPorId(id) {
@@ -735,19 +766,14 @@
         if (snapshot.exists() && snapshot.val().ficha) {
             injetarDadosNaTela(snapshot.val().ficha);
         } else {
-            const fichaVazia = {
-                nome: 'Novo Personagem',
-                forca: 0, bonusForca: 0,
-                habilidade: 0, bonusHabilidade: 0,
-                resistencia: 0, bonusResistencia: 0,
-                armadura: 0, bonusArmadura: 0,
-                pdf: 0, bonusPdf: 0,
-                pontos: 0, xp: 0, dinheiro: 0,
-                pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
-                vantagemUnicaNome: '', vantagemUnicaDesc: '',
-                listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
-            };
+            // Criar ficha vazia para o jogador/NPC
+            const fichaVazia = getFichaVazia('Novo Personagem');
             injetarDadosNaTela(fichaVazia);
+            await update(jogadorRef, {
+                personagemNome: 'Novo Personagem',
+                ficha: fichaVazia,
+                ultimaAtualizacao: serverTimestamp()
+            });
         }
         
         gmPanel.style.display = 'none';
@@ -860,18 +886,7 @@
         if (!nomeFicha) return;
         
         const novoId = 'npc_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-        const novaFicha = {
-            nome: nomeFicha,
-            forca: 0, bonusForca: 0,
-            habilidade: 0, bonusHabilidade: 0,
-            resistencia: 0, bonusResistencia: 0,
-            armadura: 0, bonusArmadura: 0,
-            pdf: 0, bonusPdf: 0,
-            pontos: 0, xp: 0, dinheiro: 0,
-            pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
-            vantagemUnicaNome: '', vantagemUnicaDesc: '',
-            listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
-        };
+        const novaFicha = getFichaVazia(nomeFicha);
         
         const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${novoId}`);
         set(jogadorRef, {
@@ -895,17 +910,29 @@
     if (avatarBtn && avatarUpload) {
         avatarBtn.onclick = () => avatarUpload.click();
         document.getElementById('btnAvatar').onclick = () => avatarUpload.click();
-        avatarUpload.addEventListener('change', function(e) {
+        avatarUpload.addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(ev) {
+            reader.onload = async function(ev) {
+                const avatarSrc = ev.target.result;
                 const img = document.createElement('img');
-                img.src = ev.target.result;
-                img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
-                avatarBtn.innerHTML = ''; avatarBtn.appendChild(img);
-                localStorage.setItem(`avatar_${currentPin}_${visualizandoId}`, ev.target.result);
-                salvarFichaAtual();
+                img.src = avatarSrc;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                avatarBtn.innerHTML = '';
+                avatarBtn.appendChild(img);
+                
+                // Salvar avatar no Firebase
+                if (currentPin && visualizandoId) {
+                    const dados = extrairDadosDaTela();
+                    const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${visualizandoId}`);
+                    await update(jogadorRef, {
+                        'ficha/avatarSrc': avatarSrc,
+                        ultimaAtualizacao: serverTimestamp()
+                    });
+                }
             };
             reader.readAsDataURL(file);
         });
@@ -1083,18 +1110,7 @@
         isMaster = false;
         isGM = false;
         
-        const fichaVazia = {
-            nome: nome,
-            forca: 0, bonusForca: 0,
-            habilidade: 0, bonusHabilidade: 0,
-            resistencia: 0, bonusResistencia: 0,
-            armadura: 0, bonusArmadura: 0,
-            pdf: 0, bonusPdf: 0,
-            pontos: 0, xp: 0, dinheiro: 0,
-            pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
-            vantagemUnicaNome: '', vantagemUnicaDesc: '',
-            listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
-        };
+        const fichaVazia = getFichaVazia(nome);
         
         const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
         await set(jogadorRef, {
