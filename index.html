@@ -729,6 +729,7 @@
     }
     
     async function carregarFichaPorId(id) {
+        if (!currentPin) return;
         visualizandoId = id;
         const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${id}`);
         const snapshot = await get(jogadorRef);
@@ -839,7 +840,9 @@
         });
     }
     
+    // Função global para selecionar ficha (chamada pelo onclick do botão)
     window.selecionarFicha = async function(idAlvo) {
+        console.log("Selecionando ficha:", idAlvo);
         await carregarFichaPorId(idAlvo);
     };
     
