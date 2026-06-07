@@ -605,13 +605,20 @@
     }
     
     // =========================================
-    // LISTAS DINÂMICAS
+    // LISTAS DINÂMICAS (CORRIGIDAS)
     // =========================================
     function renderizarLista(tipo, containerId) {
         const container = document.getElementById(containerId);
         if (!container) return;
+        
+        const lista = fichaListas[tipo];
+        if (!lista || !Array.isArray(lista)) {
+            container.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">Nenhum item</div>';
+            return;
+        }
+        
         container.innerHTML = '';
-        fichaListas[tipo].forEach((elemento, index) => {
+        lista.forEach((elemento, index) => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'item';
             itemDiv.innerHTML = `
@@ -630,22 +637,31 @@
     }
     
     window.adicionarItemLista = function(tipo, containerId) {
+        if (!fichaListas[tipo]) {
+            fichaListas[tipo] = [];
+        }
         fichaListas[tipo].push({ nome: '', valor: '', desc: '', visivel: false });
         renderizarLista(tipo, containerId);
         salvarFichaAtual();
     };
+    
     window.removerItemLista = function(tipo, index, containerId) {
+        if (!fichaListas[tipo]) return;
         fichaListas[tipo].splice(index, 1);
         renderizarLista(tipo, containerId);
         salvarFichaAtual();
     };
+    
     window.toggleDescLista = function(tipo, index) {
+        if (!fichaListas[tipo] || !fichaListas[tipo][index]) return;
         fichaListas[tipo][index].visivel = !fichaListas[tipo][index].visivel;
         const el = document.getElementById(`desc-${tipo}-${index}`);
-        if(el) el.style.display = fichaListas[tipo][index].visivel ? 'block' : 'none';
+        if (el) el.style.display = fichaListas[tipo][index].visivel ? 'block' : 'none';
         salvarFichaAtual();
     };
+    
     window.atualizarItemLista = function(tipo, index, campo, valor) {
+        if (!fichaListas[tipo] || !fichaListas[tipo][index]) return;
         fichaListas[tipo][index][campo] = valor;
         salvarFichaAtual();
     };
@@ -690,9 +706,9 @@
             pmTotal: document.getElementById('pmTotal').value,
             pmAtual: document.getElementById('pmAtual').value,
             vantagemUnicaNome: document.getElementById('vantagemUnicaNome').value,
-            vantagemUnicaCusto: document.getElementById('vantagemUnicaCusto').value,
+            vantagemUnicaCusto: parseInt(document.getElementById('vantagemUnicaCusto').value) || 0,
             vantagemUnicaDesc: document.getElementById('vantagemUnicaDesc').value,
-            avatarSrc: document.getElementById('avatarBtn').querySelector('img')?.src || '',
+            avatarSrc: (document.getElementById('avatarBtn').querySelector('img')?.src) || '',
             listas: fichaListas
         };
     }
@@ -735,7 +751,17 @@
             avatarBtn.innerHTML = '<div class="avatar-placeholder">🎲</div>';
         }
         
-        fichaListas = f.listas || { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
+        // Garantir que todas as listas existam
+        fichaListas = {
+            vantagens: f.listas?.vantagens || [],
+            desvantagens: f.listas?.desvantagens || [],
+            pericias: f.listas?.pericias || [],
+            itens: f.listas?.itens || [],
+            equipamentos: f.listas?.equipamentos || [],
+            tiposDano: f.listas?.tiposDano || [],
+            magias: f.listas?.magias || [],
+            kits: f.listas?.kits || []
+        };
         
         renderizarLista('vantagens', 'vantagensLista');
         renderizarLista('desvantagens', 'desvantagensLista');
