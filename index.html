@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D&T Alpha - Ficha Multiplayer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            font-family: 'Segoe UI', Verdana, sans-serif;
+            color: #e0e0e0;
+            padding: 16px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: rgba(20,20,20,0.95);
+            border-radius: 20px;
+            border: 2px solid #d4af37;
+            padding: 20px;
+        }
+        h1 { text-align: center; color: #d4af37; margin-bottom: 20px; font-size: 24px; }
+        h2 { color: #d9b97d; font-size: 18px; margin-bottom: 15px; }
+        h3 { color: #d9b97d; font-size: 16px; margin-bottom: 10px; border-bottom: 1px solid #444; padding-bottom: 5px; }
+        
+        .status-bar {
+            background: #2a2a2a;
+            border-left: 4px solid #d4af37;
+            border-radius: 8px;
+            padding: 8px 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .mode-badge { background: #4a6a8a; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .viewing-badge { background: #b71c1c; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; animation: pulse 2s infinite; display: none; }
+        
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        .btn-exportar, .btn-importar, .btn-voltar {
+            background: #4a6a8a; color: white; border: none; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 11px;
+        }
+        .btn-exportar:hover, .btn-importar:hover, .btn-voltar:hover { background: #6a8aaa; }
+        .btn-voltar { background: #d4af37; color: #111; font-weight: bold; display: none; }
+        .btn-voltar:hover { background: #fff; }
+        
+        /* Tela de Login */
+        .login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px;
+        }
+        .login-card {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #d4af37;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+        .login-card button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #5d4723;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .login-card button:hover { background: #8a6a35; }
+        .login-card .btn-secundario {
+            background: #4a6a8a;
+        }
+        .login-card .btn-secundario:hover { background: #6a8aaa; }
+        .divider {
+            text-align: center;
+            margin: 15px 0;
+            color: #666;
+        }
+        
+        /* Painel do Mestre */
+        .gm-panel { background: #1e1e1e; border: 1px dashed #d4af37; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: none; }
+        .gm-players-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; }
+        .gm-player-card { background: #2a2a2a; padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #4a6a8a; }
+        .gm-player-card span { font-size: 13px; font-weight: bold; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-gm-view { background: #5d4723; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+        .btn-gm-view:hover { background: #8a6a35; }
+
+        .abas { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+        .aba-btn {
+            padding: 8px 18px; background: #2b2b2b; color: white; border: 1px solid #555;
+            border-radius: 8px; cursor: pointer; font-size: 13px;
+        }
+        .aba-btn.ativa { background: #7b5b2b; border-color: #d4af37; }
+        .aba-conteudo { display: none; }
+        .aba-conteudo.ativa { display: block; }
+        
+        .layout { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; margin-bottom: 20px; }
+        .col-avatar { width: 200px; text-align: center; }
+        .col-atributos { width: 480px; }
+        .col-roll { width: 260px; background: #2a2a2a; padding: 15px; border-radius: 12px; }
+        
+        .nome-input { width: 100%; padding: 10px; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+        
+        .avatar { width: 160px; height: 160px; margin: 0 auto 10px; border-radius: 50%; border: 3px solid #d4af37; background: #111; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-placeholder { font-size: 60px; }
+        .btn-upload { width: 100%; padding: 6px; background: #4a6a8a; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; }
+        
+        .card { background: #2a2a2a; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .grid-atributos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .atributo { display: flex; align-items: center; gap: 5px; background: #1b1b1b; padding: 8px; border-radius: 8px; }
+        .atributo span { width: 40px; font-weight: bold; color: #d6b16e; font-size: 13px; }
+        .atributo input { width: 50px; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 5px; padding: 6px; text-align: center; }
+        .atributo .bonus { width: 45px; }
+        .atributo button { width: 32px; height: 32px; background: #5d4723; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .atributo button:hover { background: #8a6a35; }
+        
+        .card-recursos { background: #2a2a2a; padding: 15px; border-radius: 12px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .recurso { text-align: center; }
+        .recurso label { display: block; font-size: 11px; color: #aaa; margin-bottom: 5px; }
+        .recurso input { width: 100%; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 5px; padding: 6px; text-align: center; font-size: 12px; }
+        
+        .roll-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; justify-content: space-between; }
+        .roll-row label { font-size: 12px; color: #aaa; }
+        .roll-row input { width: 60px; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 5px; padding: 6px; text-align: center; }
+        .btn-roll { width: 100%; padding: 10px; background: #5d4723; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        .secret-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 11px; color: #ffb74d; border-top: 1px solid #444; padding-top: 10px; cursor: pointer; }
+        .secret-row input { cursor: pointer; width: 14px; height: 14px; }
+
+        .botoes-acao { display: flex; gap: 15px; justify-content: center; margin: 20px 0; flex-wrap: wrap; }
+        .btn-acao { padding: 10px 25px; background: #5d4723; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-acao:hover { background: #8a6a35; }
+        
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .card-lista, .card-full { background: #2a2a2a; padding: 15px; border-radius: 12px; }
+        .card-full { grid-column: span 3; }
+        
+        .lista { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 15px; }
+        .item { background: #1b1b1b; border-radius: 8px; overflow: hidden; margin-bottom: 5px; }
+        .item-linha { display: flex; gap: 6px; align-items: center; padding: 8px; }
+        .item-linha input { flex: 2; min-width: 100px; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 5px; padding: 6px; font-size: 12px; }
+        .item-linha .valor { flex: none; width: 60px; }
+        .btn-desc { width: 32px; height: 32px; background: #4a6a8a; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .btn-del { width: 32px; height: 32px; background: #772222; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .desc-editor { padding: 0 8px 8px 8px; border-top: 1px solid #444; }
+        .desc-editor textarea { width: 100%; background: #1a1a1a; color: white; border: 1px solid #555; border-radius: 5px; padding: 8px; font-size: 11px; font-family: inherit; resize: vertical; }
+        
+        .btn-add { width: 100%; padding: 10px; background: #5d4723; color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 10px; }
+        .btn-add:hover { background: #8a6a35; }
+        
+        .chat { margin-top: 25px; background: #2a2a2a; border-radius: 12px; overflow: hidden; }
+        .chat-header { padding: 12px 15px; background: #1f1f1f; border-bottom: 1px solid #444; }
+        .chat-title { color: #d4af37; font-weight: bold; font-size: 14px; }
+        .chat-mensagens { height: 200px; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .mensagem { background: #1a1a1a; padding: 8px 12px; border-radius: 8px; border-left: 3px solid #d4af37; }
+        .mensagem.secreta { border-left: 3px dashed #ffb74d; background: #261c10; }
+        .mensagem-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .mensagem-header strong { color: #d4af37; font-size: 12px; }
+        .mensagem-time { font-size: 9px; color: #666; }
+        .mensagem-texto { font-size: 12px; color: #ccc; }
+        .empty-chat { text-align: center; color: #666; padding: 40px; }
+        
+        .dice-anim { position: fixed; top: 20px; right: 20px; font-size: 40px; opacity: 0; pointer-events: none; transition: all 0.3s; }
+        
+        @media (max-width: 900px) {
+            .grid-3 { grid-template-columns: 1fr; }
+            .card-full { grid-column: span 1; }
+            .layout { flex-direction: column; align-items: center; }
+            .col-atributos { width: 100%; max-width: 480px; }
+            .col-roll { width: 100%; max-width: 350px; }
+            .card-recursos { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="appContainer">
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <h2>🎲 3D&T Alpha</h2>
+            <input type="text" id="pinInput" placeholder="Código da Mesa (6 dígitos)" maxlength="6">
+            <input type="text" id="nomeInput" placeholder="Seu Nome">
+            <button id="btnCriarMesa">👑 Criar Nova Mesa</button>
+            <div class="divider">ou</div>
+            <button id="btnEntrarMesa" class="btn-secundario">🎲 Entrar em Mesa Existente</button>
+        </div>
+    </div>
+
+    <!-- TELA PRINCIPAL (FICHA) -->
+    <div id="fichaScreen" style="display: none;">
+        <h1>🎲 3D&T Alpha - Ficha de Personagem</h1>
+        
+        <div class="status-bar">
+            <div>
+                <span class="mode-badge" id="statusText">📦 Modo Conectado</span>
+                <span class="viewing-badge" id="viewingText">👁️ Editando Ficha Alheia</span>
+            </div>
+            <div>
+                <button class="btn-voltar" id="btnVoltarMinhaFicha">⬅️ Voltar para Minha Ficha</button>
+                <button class="btn-exportar" id="btnExportar">📤 Exportar</button>
+                <input type="file" id="fileImportar" accept=".json" style="display:none;">
+                <button class="btn-importar" id="btnImportar">📥 Importar</button>
+            </div>
+        </div>
+
+        <div class="gm-panel" id="gmPanel">
+            <h3>👥 Gerenciador de Fichas (Mestre)</h3>
+            <div class="gm-players-grid" id="gmPlayersGrid">
+                <p style="font-size: 12px; color: #666;">Aguardando jogadores conectarem...</p>
+            </div>
+        </div>
+        
+        <div class="abas">
+            <button class="aba-btn ativa" data-aba="principal">📋 Principal</button>
+            <button class="aba-btn" data-aba="vantagens">✨ Vantagens</button>
+            <button class="aba-btn" data-aba="inventario">🎒 Inventário</button>
+            <button class="aba-btn" data-aba="magias">🔮 Magias</button>
+            <button class="aba-btn" data-aba="kits">📦 Kits</button>
+        </div>
+        
+        <div id="aba-principal" class="aba-conteudo ativa">
+            <div class="layout">
+                <div class="col-avatar">
+                    <input type="text" id="nomePersonagem" class="nome-input" placeholder="Nome do Personagem">
+                    <div class="avatar" id="avatarBtn">
+                        <div class="avatar-placeholder">🎲</div>
+                    </div>
+                    <input type="file" id="uploadAvatar" accept="image/*" style="display:none;">
+                    <button class="btn-upload" id="btnAvatar">📷 Escolher Imagem</button>
+                </div>
+                
+                <div class="col-atributos">
+                    <div class="card">
+                        <div class="grid-atributos">
+                            <div class="atributo"><span>💪 F</span><input type="number" id="forca" value="3"><input type="number" id="bonusForca" class="bonus" value="0"><button class="btn-atributo" data-nome="Força" data-id="forca">🎲</button></div>
+                            <div class="atributo"><span>🎯 H</span><input type="number" id="habilidade" value="2"><input type="number" id="bonusHabilidade" class="bonus" value="0"><button class="btn-atributo" data-nome="Habilidade" data-id="habilidade">🎲</button></div>
+                            <div class="atributo"><span>🛡️ R</span><input type="number" id="resistencia" value="2"><input type="number" id="bonusResistencia" class="bonus" value="0"><button class="btn-atributo" data-nome="Resistência" data-id="resistencia">🎲</button></div>
+                            <div class="atributo"><span>⚔️ A</span><input type="number" id="armadura" value="0"><input type="number" id="bonusArmadura" class="bonus" value="0"><button class="btn-atributo" data-nome="Armadura" data-id="armadura">🎲</button></div>
+                            <div class="atributo"><span>🔮 PdF</span><input type="number" id="pdf" value="0"><input type="number" id="bonusPdf" class="bonus" value="0"><button class="btn-atributo" data-nome="PdF" data-id="pdf">🎲</button></div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-recursos">
+                        <div class="recurso"><label>❤️ PV</label><input type="number" id="pvTotal" placeholder="Total"><input type="number" id="pvAtual" placeholder="Atual"></div>
+                        <div class="recurso"><label>✨ PM</label><input type="number" id="pmTotal" placeholder="Total"><input type="number" id="pmAtual" placeholder="Atual"></div>
+                        <div class="recurso"><label>💰 Pontos</label><input type="number" id="pontos" value="10"></div>
+                        <div class="recurso"><label>⭐ XP</label><input type="number" id="xp" value="0"></div>
+                        <div class="recurso"><label>🪙 T$</label><input type="number" id="dinheiro" value="0"></div>
+                    </div>
+                </div>
+                
+                <div class="col-roll">
+                    <h3>🎲 Rolagem Genérica</h3>
+                    <div class="roll-row"><label>Quantidade de dados:</label><input type="number" id="qtdDados" value="1" min="1" max="20"></div>
+                    <div class="roll-row"><label>Modificador fixo:</label><input type="number" id="modRoll" value="0"></div>
+                    <button class="btn-roll" id="btnRolarGenerico">🎲 Rolar Dados</button>
+                    
+                    <div id="secretRollContainer" class="secret-row" style="display: none;">
+                        <input type="checkbox" id="chkSecretRoll"> 🕵️ Rolar em Segredo (Ocultar da Mesa)
+                    </div>
+                </div>
+            </div>
+            
+            <div class="botoes-acao">
+                <button class="btn-acao" id="btnAtaqueCurto">⚔️ Ataque Curto</button>
+                <button class="btn-acao" id="btnAtaqueDistancia">🏹 Ataque Distância</button>
+                <button class="btn-acao" id="btnDefesa">🛡️ Defesa</button>
+            </div>
+            
+            <div class="card" style="margin-top: 15px;">
+                <h3>🌟 Vantagem Única</h3>
+                <div class="item">
+                    <div class="item-linha">
+                        <input type="text" id="vantagemUnicaNome" placeholder="Nome da Vantagem Única">
+                        <button class="btn-desc" id="btnToggleVantagemUnica">📖</button>
+                    </div>
+                    <div id="vantagemUnicaDescEditor" style="display:none;" class="desc-editor">
+                        <textarea id="vantagemUnicaDesc" rows="3" placeholder="Descrição da Vantagem Única..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="aba-vantagens" class="aba-conteudo">
+            <div class="grid-3">
+                <div class="card-lista"><h3>✅ Vantagens</h3><div id="vantagensLista" class="lista"></div><button class="btn-add" id="addVantagem">+ Adicionar Vantagem</button></div>
+                <div class="card-lista"><h3>❌ Desvantagens</h3><div id="desvantagensLista" class="lista"></div><button class="btn-add" id="addDesvantagem">+ Adicionar Desvantagem</button></div>
+                <div class="card-lista"><h3>⚡ Perícias</h3><div id="periciasLista" class="lista"></div><button class="btn-add" id="addPericia">+ Adicionar Perícia</button></div>
+            </div>
+        </div>
+        
+        <div id="aba-inventario" class="aba-conteudo">
+            <div class="grid-3">
+                <div class="card-lista"><h3>📦 Itens</h3><div id="itensLista" class="lista"></div><button class="btn-add" id="addItem">+ Adicionar Item</button></div>
+                <div class="card-lista"><h3>⚔️ Equipamentos</h3><div id="equipamentosLista" class="lista"></div><button class="btn-add" id="addEquipamento">+ Adicionar Equipamento</button></div>
+                <div class="card-lista"><h3>💥 Tipos de Dano</h3><div id="tiposDanoLista" class="lista"></div><button class="btn-add" id="addTipoDano">+ Adicionar Tipo de Dano</button></div>
+            </div>
+        </div>
+        
+        <div id="aba-magias" class="aba-conteudo">
+            <div class="card-full"><h3>🔮 Magias</h3><div id="magiasLista" class="lista"></div><button class="btn-add" id="addMagia">+ Adicionar Magia</button></div>
+        </div>
+        
+        <div id="aba-kits" class="aba-conteudo">
+            <div class="card-full"><h3>📦 Kits</h3><div id="kitsLista" class="lista"></div><button class="btn-add" id="addKit">+ Adicionar Kit</button></div>
+        </div>
+        
+        <div class="chat">
+            <div class="chat-header"><span class="chat-title">💬 Chat de Rolagens</span></div>
+            <div id="chatMensagens" class="chat-mensagens"><div class="empty-chat">📢 Nenhuma rolagem ainda.</div></div>
+        </div>
+    </div>
+</div>
+
+<div id="diceAnim" class="dice-anim">🎲</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, push, update, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-database.js";
+    
+    // =========================================
+    // CONFIGURAÇÃO DO FIREBASE
+    // =========================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyDLzqmIVK3AyExjc4hr6Jht4tLUnbHkCoE",
+        authDomain: "mestragem-3det-alpha.firebaseapp.com",
+        projectId: "mestragem-3det-alpha",
+        storageBucket: "mestragem-3det-alpha.firebasestorage.app",
+        messagingSenderId: "290185604308",
+        appId: "1:290185604308:web:4d9ab0d246569a72629f41",
+        measurementId: "G-PRJZGM2E1G"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    
+    // =========================================
+    // ESTADO GLOBAL
+    // =========================================
+    let currentPin = null;
+    let currentUserId = null;
+    let currentUserName = null;
+    let isMaster = false;
+    let isGM = false;
+    let visualizandoId = null;
+    
+    let fichaListas = { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
+    
+    // Elementos DOM
+    const loginScreen = document.getElementById('loginScreen');
+    const fichaScreen = document.getElementById('fichaScreen');
+    const gmPanel = document.getElementById('gmPanel');
+    const secretRollContainer = document.getElementById('secretRollContainer');
+    const chatDiv = document.getElementById('chatMensagens');
+    const diceAnim = document.getElementById('diceAnim');
+    
+    // =========================================
+    // FUNÇÕES DE CHAT
+    // =========================================
+    function addMensagem(texto, ehSecreta = false) {
+        const nome = document.getElementById('nomePersonagem').value || currentUserName || 'Jogador';
+        const hora = new Date().toLocaleTimeString();
+        const msgDiv = document.createElement('div');
+        msgDiv.className = ehSecreta ? 'mensagem secreta' : 'mensagem';
+        const labelSecreto = ehSecreta ? ' <span style="color:#ffb74d;">[SEGREDO]</span>' : '';
+        msgDiv.innerHTML = `<div class="mensagem-header"><strong>${escapeHtml(nome)}${labelSecreto}</strong><span class="mensagem-time">${hora}</span></div><div class="mensagem-texto">${escapeHtml(texto)}</div>`;
+        chatDiv.insertBefore(msgDiv, chatDiv.firstChild);
+        const emptyChat = chatDiv.querySelector('.empty-chat');
+        if (emptyChat) emptyChat.remove();
+        if (chatDiv.children.length > 50) { while (chatDiv.children.length > 50) chatDiv.removeChild(chatDiv.lastChild); }
+    }
+    
+    async function enviarRolagemFirebase(texto, ehSecreta = false) {
+        if (!currentPin) return;
+        const nome = document.getElementById('nomePersonagem').value || currentUserName || 'Jogador';
+        const rolagemRef = ref(db, `mesas/${currentPin}/rolagens`);
+        const newRolagemRef = push(rolagemRef);
+        await set(newRolagemRef, {
+            texto: texto,
+            jogador: nome,
+            secreta: ehSecreta,
+            timestamp: Date.now()
+        });
+    }
+    
+    function escutarRolagens() {
+        if (!currentPin) return;
+        const rolagensRef = ref(db, `mesas/${currentPin}/rolagens`);
+        onValue(rolagensRef, (snapshot) => {
+            const rolagens = snapshot.val();
+            if (!rolagens) {
+                chatDiv.innerHTML = '<div class="empty-chat">📢 Nenhuma rolagem ainda.</div>';
+                return;
+            }
+            const rolagensList = Object.values(rolagens).sort((a,b) => b.timestamp - a.timestamp);
+            chatDiv.innerHTML = '';
+            rolagensList.forEach(r => {
+                const hora = new Date(r.timestamp).toLocaleTimeString();
+                const msgDiv = document.createElement('div');
+                msgDiv.className = r.secreta ? 'mensagem secreta' : 'mensagem';
+                const labelSecreto = r.secreta ? ' <span style="color:#ffb74d;">[SEGREDO]</span>' : '';
+                msgDiv.innerHTML = `<div class="mensagem-header"><strong>${escapeHtml(r.jogador)}${labelSecreto}</strong><span class="mensagem-time">${hora}</span></div><div class="mensagem-texto">${escapeHtml(r.texto)}</div>`;
+                chatDiv.appendChild(msgDiv);
+            });
+        });
+    }
+    
+    // =========================================
+    // ROLAGENS (LOCAIS)
+    // =========================================
+    function animarDado() {
+        if(!diceAnim) return;
+        diceAnim.style.opacity = '1';
+        diceAnim.style.transform = 'rotate(0deg) scale(1)';
+        setTimeout(() => {
+            diceAnim.style.transform = 'rotate(720deg) scale(1.5)';
+            setTimeout(() => { diceAnim.style.opacity = '0'; }, 500);
+        }, 50);
+    }
+    
+    function testarAtributo(nome, id) {
+        animarDado();
+        const valor = parseInt(document.getElementById(id).value) || 0;
+        const bonusId = 'bonus' + id.charAt(0).toUpperCase() + id.slice(1);
+        const bonus = parseInt(document.getElementById(bonusId)?.value) || 0;
+        const alvo = valor + bonus;
+        const dado = Math.floor(Math.random() * 6) + 1;
+        const sucesso = dado <= alvo;
+        const resultado = `${nome}: 🎲 ${dado} | Alvo: ${alvo} → ${sucesso ? '✅ SUCESSO' : '❌ FALHA'}`;
+        const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
+        addMensagem(resultado, ehSecreta);
+        if (!ehSecreta) enviarRolagemFirebase(resultado, false);
+        salvarFicha();
+    }
+    
+    function ataqueCurto() {
+        animarDado();
+        const dado = Math.floor(Math.random() * 6) + 1;
+        let f = parseInt(document.getElementById('forca').value) || 0;
+        let b = parseInt(document.getElementById('bonusForca').value) || 0;
+        const h = parseInt(document.getElementById('habilidade').value) || 0;
+        let critico = '';
+        if (dado === 6) { f = f * 2; b = b * 2; critico = ' (CRÍTICO!)'; }
+        const total = dado + f + b + h;
+        const resultado = `⚔️ Ataque Curto${critico}: ${dado}+${f}+${b}+${h}=${total}`;
+        const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
+        addMensagem(resultado, ehSecreta);
+        if (!ehSecreta) enviarRolagemFirebase(resultado, false);
+        salvarFicha();
+    }
+    
+    function ataqueDistancia() {
+        animarDado();
+        const dado = Math.floor(Math.random() * 6) + 1;
+        let p = parseInt(document.getElementById('pdf').value) || 0;
+        let b = parseInt(document.getElementById('bonusPdf').value) || 0;
+        const h = parseInt(document.getElementById('habilidade').value) || 0;
+        let critico = '';
+        if (dado === 6) { p = p * 2; b = b * 2; critico = ' (CRÍTICO!)'; }
+        const total = dado + p + b + h;
+        const resultado = `🏹 Ataque Distância${critico}: ${dado}+${p}+${b}+${h}=${total}`;
+        const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
+        addMensagem(resultado, ehSecreta);
+        if (!ehSecreta) enviarRolagemFirebase(resultado, false);
+        salvarFicha();
+    }
+    
+    function defesa() {
+        animarDado();
+        const dado = Math.floor(Math.random() * 6) + 1;
+        let a = parseInt(document.getElementById('armadura').value) || 0;
+        let b = parseInt(document.getElementById('bonusArmadura').value) || 0;
+        const h = parseInt(document.getElementById('habilidade').value) || 0;
+        let critico = '';
+        if (dado === 6) { a = a * 2; b = b * 2; critico = ' (CRÍTICO!)'; }
+        const total = dado + a + b + h;
+        const resultado = `🛡️ Defesa${critico}: ${dado}+${a}+${b}+${h}=${total}`;
+        const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
+        addMensagem(resultado, ehSecreta);
+        if (!ehSecreta) enviarRolagemFirebase(resultado, false);
+        salvarFicha();
+    }
+    
+    function rolarGenerico() {
+        animarDado();
+        const qtd = parseInt(document.getElementById('qtdDados').value) || 1;
+        const mod = parseInt(document.getElementById('modRoll').value) || 0;
+        let resultados = [], soma = 0;
+        for (let i = 0; i < qtd; i++) {
+            const r = Math.floor(Math.random() * 6) + 1;
+            resultados.push(r);
+            soma += r;
+        }
+        const total = soma + mod;
+        const resultado = `Rolagem Genérica: ${resultados.join('+')}${mod ? `+${mod}` : ''}=${total}`;
+        const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
+        addMensagem(resultado, ehSecreta);
+        if (!ehSecreta) enviarRolagemFirebase(resultado, false);
+        salvarFicha();
+    }
+    
+    // =========================================
+    // LISTAS DINÂMICAS
+    // =========================================
+    function renderizarLista(tipo, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        fichaListas[tipo].forEach((elemento, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'item';
+            itemDiv.innerHTML = `
+                <div class="item-linha">
+                    <input type="text" value="${escapeHtml(elemento.nome)}" placeholder="Nome" oninput="atualizarItemLista('${tipo}', ${index}, 'nome', this.value)">
+                    <input type="text" class="valor" value="${escapeHtml(elemento.valor)}" placeholder="Custo/Qtd" oninput="atualizarItemLista('${tipo}', ${index}, 'valor', this.value)">
+                    <button class="btn-desc" onclick="toggleDescLista('${tipo}', ${index})">📖</button>
+                    <button class="btn-del" onclick="removerItemLista('${tipo}', ${index}, '${containerId}')">❌</button>
+                </div>
+                <div id="desc-${tipo}-${index}" style="display: ${elemento.visivel ? 'block' : 'none'};" class="desc-editor">
+                    <textarea rows="2" placeholder="Descrição detalhada..." oninput="atualizarItemLista('${tipo}', ${index}, 'desc', this.value)">${escapeHtml(elemento.desc)}</textarea>
+                </div>
+            `;
+            container.appendChild(itemDiv);
+        });
+    }
+    
+    window.adicionarItemLista = function(tipo, containerId) {
+        fichaListas[tipo].push({ nome: '', valor: '', desc: '', visivel: false });
+        renderizarLista(tipo, containerId);
+        salvarFicha();
+    };
+    window.removerItemLista = function(tipo, index, containerId) {
+        fichaListas[tipo].splice(index, 1);
+        renderizarLista(tipo, containerId);
+        salvarFicha();
+    };
+    window.toggleDescLista = function(tipo, index) {
+        fichaListas[tipo][index].visivel = !fichaListas[tipo][index].visivel;
+        const el = document.getElementById(`desc-${tipo}-${index}`);
+        if(el) el.style.display = fichaListas[tipo][index].visivel ? 'block' : 'none';
+        salvarFicha();
+    };
+    window.atualizarItemLista = function(tipo, index, campo, valor) {
+        fichaListas[tipo][index][campo] = valor;
+        salvarFicha();
+    };
+    
+    // =========================================
+    // FUNÇÕES DA FICHA
+    // =========================================
+    function extrairDadosDaTela() {
+        return {
+            nome: document.getElementById('nomePersonagem').value,
+            forca: document.getElementById('forca').value,
+            bonusForca: document.getElementById('bonusForca').value,
+            habilidade: document.getElementById('habilidade').value,
+            bonusHabilidade: document.getElementById('bonusHabilidade').value,
+            resistencia: document.getElementById('resistencia').value,
+            bonusResistencia: document.getElementById('bonusResistencia').value,
+            armadura: document.getElementById('armadura').value,
+            bonusArmadura: document.getElementById('bonusArmadura').value,
+            pdf: document.getElementById('pdf').value,
+            bonusPdf: document.getElementById('bonusPdf').value,
+            pontos: document.getElementById('pontos').value,
+            xp: document.getElementById('xp').value,
+            dinheiro: document.getElementById('dinheiro').value,
+            pvTotal: document.getElementById('pvTotal').value,
+            pvAtual: document.getElementById('pvAtual').value,
+            pmTotal: document.getElementById('pmTotal').value,
+            pmAtual: document.getElementById('pmAtual').value,
+            vantagemUnicaNome: document.getElementById('vantagemUnicaNome').value,
+            vantagemUnicaDesc: document.getElementById('vantagemUnicaDesc').value,
+            listas: fichaListas
+        };
+    }
+    
+    function injetarDadosNaTela(f) {
+        if (!f) return;
+        if (f.nome !== undefined) document.getElementById('nomePersonagem').value = f.nome;
+        if (f.forca !== undefined) document.getElementById('forca').value = f.forca;
+        if (f.bonusForca !== undefined) document.getElementById('bonusForca').value = f.bonusForca;
+        if (f.habilidade !== undefined) document.getElementById('habilidade').value = f.habilidade;
+        if (f.bonusHabilidade !== undefined) document.getElementById('bonusHabilidade').value = f.bonusHabilidade;
+        if (f.resistencia !== undefined) document.getElementById('resistencia').value = f.resistencia;
+        if (f.bonusResistencia !== undefined) document.getElementById('bonusResistencia').value = f.bonusResistencia;
+        if (f.armadura !== undefined) document.getElementById('armadura').value = f.armadura;
+        if (f.bonusArmadura !== undefined) document.getElementById('bonusArmadura').value = f.bonusArmadura;
+        if (f.pdf !== undefined) document.getElementById('pdf').value = f.pdf;
+        if (f.bonusPdf !== undefined) document.getElementById('bonusPdf').value = f.bonusPdf;
+        if (f.pontos !== undefined) document.getElementById('pontos').value = f.pontos;
+        if (f.xp !== undefined) document.getElementById('xp').value = f.xp;
+        if (f.dinheiro !== undefined) document.getElementById('dinheiro').value = f.dinheiro;
+        if (f.pvTotal !== undefined) document.getElementById('pvTotal').value = f.pvTotal;
+        if (f.pvAtual !== undefined) document.getElementById('pvAtual').value = f.pvAtual;
+        if (f.pmTotal !== undefined) document.getElementById('pmTotal').value = f.pmTotal;
+        if (f.pmAtual !== undefined) document.getElementById('pmAtual').value = f.pmAtual;
+        if (f.vantagemUnicaNome !== undefined) document.getElementById('vantagemUnicaNome').value = f.vantagemUnicaNome;
+        if (f.vantagemUnicaDesc !== undefined) document.getElementById('vantagemUnicaDesc').value = f.vantagemUnicaDesc;
+        
+        fichaListas = f.listas || { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
+        
+        renderizarLista('vantagens', 'vantagensLista');
+        renderizarLista('desvantagens', 'desvantagensLista');
+        renderizarLista('pericias', 'periciasLista');
+        renderizarLista('itens', 'itensLista');
+        renderizarLista('equipamentos', 'equipamentosLista');
+        renderizarLista('tiposDano', 'tiposDanoLista');
+        renderizarLista('magias', 'magiasLista');
+        renderizarLista('kits', 'kitsLista');
+    }
+    
+    async function salvarFicha() {
+        const dados = extrairDadosDaTela();
+        if (!currentPin) return;
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${currentUserId}`);
+        await set(jogadorRef, {
+            nome: currentUserName,
+            personagemNome: dados.nome || currentUserName,
+            ficha: dados,
+            isMaster: isMaster,
+            ultimaAtualizacao: serverTimestamp()
+        });
+        localStorage.setItem(`ficha_${currentPin}_${currentUserId}`, JSON.stringify(dados));
+    }
+    
+    async function carregarFicha() {
+        if (!currentPin || !currentUserId) return;
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${currentUserId}`);
+        const snapshot = await get(jogadorRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            if (data.ficha) {
+                injetarDadosNaTela(data.ficha);
+            }
+        } else {
+            const localKey = `ficha_${currentPin}_${currentUserId}`;
+            const localDados = localStorage.getItem(localKey);
+            if (localDados) {
+                injetarDadosNaTela(JSON.parse(localDados));
+            }
+        }
+    }
+    
+    // =========================================
+    // FUNÇÕES DO MESTRE
+    // =========================================
+    function carregarListaJogadores() {
+        if (!currentPin || !isMaster) return;
+        const jogadoresRef = ref(db, `mesas/${currentPin}/jogadores`);
+        onValue(jogadoresRef, (snapshot) => {
+            const jogadores = snapshot.val();
+            const grid = document.getElementById('gmPlayersGrid');
+            if (!jogadores) {
+                grid.innerHTML = '<p style="font-size: 12px; color: #666;">Nenhum jogador conectado na mesa.</p>';
+                return;
+            }
+            grid.innerHTML = '';
+            Object.entries(jogadores).forEach(([id, data]) => {
+                if (data.isMaster) return;
+                const card = document.createElement('div');
+                card.className = 'gm-player-card';
+                card.innerHTML = `
+                    <span><strong>${escapeHtml(data.nome || 'Jogador')}</strong><br><small style="color:#aaa;">${escapeHtml(data.personagemNome || 'Sem ficha')}</small></span>
+                    <button class="btn-gm-view" onclick="mestreVisualizarFicha('${id}')">Ver Ficha</button>
+                `;
+                grid.appendChild(card);
+            });
+        });
+    }
+    
+    window.mestreVisualizarFicha = async function(idAlvo) {
+        visualizandoId = idAlvo;
+        document.getElementById('viewingText').style.display = 'inline-block';
+        document.getElementById('btnVoltarMinhaFicha').style.display = 'inline-block';
+        
+        const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${idAlvo}`);
+        const snapshot = await get(jogadorRef);
+        if (snapshot.exists() && snapshot.val().ficha) {
+            injetarDadosNaTela(snapshot.val().ficha);
+        } else {
+            alert('Este jogador ainda não tem ficha.');
+            mestreVoltarMinhaFicha();
+        }
+    };
+    
+    function mestreVoltarMinhaFicha() {
+        visualizandoId = null;
+        document.getElementById('viewingText').style.display = 'none';
+        document.getElementById('btnVoltarMinhaFicha').style.display = 'none';
+        carregarFicha();
+    }
+    
+    // =========================================
+    // CRIAÇÃO E ENTRADA NA MESA
+    // =========================================
+    async function criarMesa() {
+        const pin = document.getElementById('pinInput').value.trim();
+        const nome = document.getElementById('nomeInput').value.trim();
+        if (!pin || pin.length !== 6) {
+            alert('Digite um código de 6 dígitos para a mesa');
+            return;
+        }
+        if (!nome) {
+            alert('Digite seu nome');
+            return;
+        }
+        
+        const mesaRef = ref(db, `mesas/${pin}`);
+        const snapshot = await get(mesaRef);
+        if (snapshot.exists()) {
+            alert('Este código já está em uso. Escolha outro.');
+            return;
+        }
+        
+        currentPin = pin;
+        currentUserName = nome;
+        currentUserId = 'mestre_' + Date.now();
+        isMaster = true;
+        isGM = true;
+        
+        await set(mesaRef, {
+            criadaEm: serverTimestamp(),
+            mestreId: currentUserId,
+            mestreNome: nome
+        });
+        
+        const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
+        await set(jogadorRef, {
+            nome: nome,
+            isMaster: true,
+            conectado: true
+        });
+        
+        onDisconnect(jogadorRef).update({ conectado: false });
+        
+        entrarNaSala();
+    }
+    
+    async function entrarMesa() {
+        const pin = document.getElementById('pinInput').value.trim();
+        const nome = document.getElementById('nomeInput').value.trim();
+        if (!pin || pin.length !== 6) {
+            alert('Digite o código da mesa (6 dígitos)');
+            return;
+        }
+        if (!nome) {
+            alert('Digite seu nome');
+            return;
+        }
+        
+        const mesaRef = ref(db, `mesas/${pin}`);
+        const snapshot = await get(mesaRef);
+        if (!snapshot.exists()) {
+            alert('Mesa não encontrada. Verifique o código.');
+            return;
+        }
+        
+        currentPin = pin;
+        currentUserName = nome;
+        currentUserId = 'jogador_' + Date.now();
+        isMaster = false;
+        isGM = false;
+        
+        const jogadorRef = ref(db, `mesas/${pin}/jogadores/${currentUserId}`);
+        await set(jogadorRef, {
+            nome: nome,
+            isMaster: false,
+            conectado: true,
+            entrouEm: serverTimestamp()
+        });
+        
+        onDisconnect(jogadorRef).update({ conectado: false });
+        
+        entrarNaSala();
+    }
+    
+    function entrarNaSala() {
+        loginScreen.style.display = 'none';
+        fichaScreen.style.display = 'block';
+        
+        document.getElementById('statusText').innerHTML = isMaster ? '👑 Mestre' : '🎲 Jogador';
+        
+        if (isMaster) {
+            gmPanel.style.display = 'block';
+            secretRollContainer.style.display = 'flex';
+            carregarListaJogadores();
+        } else {
+            gmPanel.style.display = 'none';
+            secretRollContainer.style.display = 'none';
+        }
+        
+        document.getElementById('btnVoltarMinhaFicha').onclick = mestreVoltarMinhaFicha;
+        
+        carregarFicha();
+        escutarRolagens();
+    }
+    
+    // =========================================
+    // AVATAR
+    // =========================================
+    const avatarBtn = document.getElementById('avatarBtn');
+    const avatarUpload = document.getElementById('uploadAvatar');
+    if (avatarBtn && avatarUpload) {
+        avatarBtn.onclick = () => avatarUpload.click();
+        document.getElementById('btnAvatar').onclick = () => avatarUpload.click();
+        avatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.createElement('img');
+                img.src = ev.target.result;
+                img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
+                avatarBtn.innerHTML = ''; avatarBtn.appendChild(img);
+                localStorage.setItem(`avatar_${currentPin}_${currentUserId}`, ev.target.result);
+                salvarFicha();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    const avatarSalvo = currentPin && currentUserId ? localStorage.getItem(`avatar_${currentPin}_${currentUserId}`) : null;
+    if (avatarSalvo && avatarBtn) {
+        const img = document.createElement('img');
+        img.src = avatarSalvo;
+        img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
+        avatarBtn.innerHTML = ''; avatarBtn.appendChild(img);
+    }
+    
+    // =========================================
+    // EXPORTAR/IMPORTAR
+    // =========================================
+    document.getElementById('btnExportar').onclick = () => {
+        salvarFicha();
+        const dados = extrairDadosDaTela();
+        const dataStr = JSON.stringify(dados, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `ficha_${Date.now()}.json`; a.click();
+        URL.revokeObjectURL(url);
+    };
+    
+    document.getElementById('btnImportar').onclick = () => document.getElementById('fileImportar').click();
+    document.getElementById('fileImportar').onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const dados = JSON.parse(ev.target.result);
+                injetarDadosNaTela(dados);
+                salvarFicha();
+                alert('Ficha importada com sucesso!');
+            } catch(err) { alert('Erro ao importar arquivo'); }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
+    
+    // =========================================
+    // EVENTOS
+    // =========================================
+    document.getElementById('btnCriarMesa').onclick = criarMesa;
+    document.getElementById('btnEntrarMesa').onclick = entrarMesa;
+    
+    document.querySelectorAll('.btn-atributo').forEach(btn => { btn.onclick = () => testarAtributo(btn.dataset.nome, btn.dataset.id); });
+    document.getElementById('btnAtaqueCurto').onclick = ataqueCurto;
+    document.getElementById('btnAtaqueDistancia').onclick = ataqueDistancia;
+    document.getElementById('btnDefesa').onclick = defesa;
+    document.getElementById('btnRolarGenerico').onclick = rolarGenerico;
+    
+    let vantagemUnicaEditando = false;
+    document.getElementById('btnToggleVantagemUnica').onclick = () => {
+        const editor = document.getElementById('vantagemUnicaDescEditor');
+        vantagemUnicaEditando = !vantagemUnicaEditando;
+        editor.style.display = vantagemUnicaEditando ? 'block' : 'none';
+    };
+    
+    document.querySelectorAll('.aba-btn').forEach(btn => {
+        btn.onclick = () => {
+            const aba = btn.dataset.aba;
+            document.querySelectorAll('.aba-btn').forEach(b => b.classList.remove('ativa'));
+            document.querySelectorAll('.aba-conteudo').forEach(c => c.classList.remove('ativa'));
+            btn.classList.add('ativa');
+            document.getElementById(`aba-${aba}`).classList.add('ativa');
+        };
+    });
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
+    }
+    
+    // Auto-save em inputs
+    document.addEventListener('input', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            if (currentPin) salvarFicha();
+        }
+    });
+    
+    document.getElementById('addVantagem').onclick = () => adicionarItemLista('vantagens', 'vantagensLista');
+    document.getElementById('addDesvantagem').onclick = () => adicionarItemLista('desvantagens', 'desvantagensLista');
+    document.getElementById('addPericia').onclick = () => adicionarItemLista('pericias', 'periciasLista');
+    document.getElementById('addItem').onclick = () => adicionarItemLista('itens', 'itensLista');
+    document.getElementById('addEquipamento').onclick = () => adicionarItemLista('equipamentos', 'equipamentosLista');
+    document.getElementById('addTipoDano').onclick = () => adicionarItemLista('tiposDano', 'tiposDanoLista');
+    document.getElementById('addMagia').onclick = () => adicionarItemLista('magias', 'magiasLista');
+    document.getElementById('addKit').onclick = () => adicionarItemLista('kits', 'kitsLista');
+</script>
+</body>
+</html>

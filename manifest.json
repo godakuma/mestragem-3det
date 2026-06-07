@@ -1,0 +1,12 @@
+{
+  "name": "3D&T Alpha - Fichas",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "action": {
+    "title": "Abrir Ficha",
+    "icon": "https://cdn-icons-png.flaticon.com/512/1149/1149636.png",
+    "popover": "https://mestragem-firebase.vercel.app/index.html",
+    "height": 680,
+    "width": 580
+  }
+}
