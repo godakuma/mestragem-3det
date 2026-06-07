@@ -338,11 +338,13 @@
                     <button class="btn-acao" id="btnDefesa">🛡️ Defesa</button>
                 </div>
                 
+                <!-- Vantagem Única (COM CAMPO DE CUSTO) -->
                 <div class="card" style="margin-top: 15px;">
                     <h3>🌟 Vantagem Única</h3>
                     <div class="item">
                         <div class="item-linha">
                             <input type="text" id="vantagemUnicaNome" placeholder="Nome da Vantagem Única">
+                            <input type="number" id="vantagemUnicaCusto" class="valor" placeholder="Custo" value="0" min="0">
                             <button class="btn-desc" id="btnToggleVantagemUnica">📖</button>
                         </div>
                         <div id="vantagemUnicaDescEditor" style="display:none;" class="desc-editor">
@@ -649,7 +651,7 @@
     };
     
     // =========================================
-    // FUNÇÕES DA FICHA
+    // FUNÇÕES DA FICHA (incluindo Vantagem Única com custo)
     // =========================================
     function getFichaVazia(nome = 'Novo Personagem') {
         return {
@@ -661,7 +663,7 @@
             pdf: 0, bonusPdf: 0,
             pontos: 0, xp: 0, dinheiro: 0,
             pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
-            vantagemUnicaNome: '', vantagemUnicaDesc: '',
+            vantagemUnicaNome: '', vantagemUnicaCusto: 0, vantagemUnicaDesc: '',
             avatarSrc: '',
             listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
         };
@@ -688,6 +690,7 @@
             pmTotal: document.getElementById('pmTotal').value,
             pmAtual: document.getElementById('pmAtual').value,
             vantagemUnicaNome: document.getElementById('vantagemUnicaNome').value,
+            vantagemUnicaCusto: document.getElementById('vantagemUnicaCusto').value,
             vantagemUnicaDesc: document.getElementById('vantagemUnicaDesc').value,
             avatarSrc: document.getElementById('avatarBtn').querySelector('img')?.src || '',
             listas: fichaListas
@@ -715,11 +718,12 @@
         document.getElementById('pmTotal').value = f.pmTotal || '';
         document.getElementById('pmAtual').value = f.pmAtual || '';
         document.getElementById('vantagemUnicaNome').value = f.vantagemUnicaNome || '';
+        document.getElementById('vantagemUnicaCusto').value = f.vantagemUnicaCusto ?? 0;
         document.getElementById('vantagemUnicaDesc').value = f.vantagemUnicaDesc || '';
         
         // Avatar
+        const avatarBtn = document.getElementById('avatarBtn');
         if (f.avatarSrc) {
-            const avatarBtn = document.getElementById('avatarBtn');
             avatarBtn.innerHTML = '';
             const img = document.createElement('img');
             img.src = f.avatarSrc;
@@ -728,7 +732,6 @@
             img.style.objectFit = 'cover';
             avatarBtn.appendChild(img);
         } else {
-            const avatarBtn = document.getElementById('avatarBtn');
             avatarBtn.innerHTML = '<div class="avatar-placeholder">🎲</div>';
         }
         
@@ -766,7 +769,6 @@
         if (snapshot.exists() && snapshot.val().ficha) {
             injetarDadosNaTela(snapshot.val().ficha);
         } else {
-            // Criar ficha vazia para o jogador/NPC
             const fichaVazia = getFichaVazia('Novo Personagem');
             injetarDadosNaTela(fichaVazia);
             await update(jogadorRef, {
@@ -924,7 +926,6 @@
                 avatarBtn.innerHTML = '';
                 avatarBtn.appendChild(img);
                 
-                // Salvar avatar no Firebase
                 if (currentPin && visualizandoId) {
                     const dados = extrairDadosDaTela();
                     const jogadorRef = ref(db, `mesas/${currentPin}/jogadores/${visualizandoId}`);
