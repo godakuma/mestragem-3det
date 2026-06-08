@@ -1,0 +1,12 @@
+{
+  "name": "3D&T Alpha - Fichas",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "Sistema de Fichas 3D&T Alpha com suporte para Mestre e Jogadores",
+  "action": {
+    "title": "Abrir Ficha",
+    "popover": "/",
+    "height": 680,
+    "width": 580
+  }
+}
