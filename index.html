@@ -720,9 +720,10 @@
     const diceAnim = document.getElementById('diceAnim');
     const pontosField = document.getElementById('pontos');
     
-    // ========== DEBOUNCE PARA SALVAMENTO ==========
+    // ========== OTIMIZAÇÕES ==========
     let saveTimeout = null;
     const MAX_CHAT_MESSAGES = 15;
+    let listaJogadoresUnsubscribe = null;
     
     function debounceSave() {
         if (saveTimeout) clearTimeout(saveTimeout);
@@ -789,7 +790,7 @@
     }
     
     // =========================================
-    // FUNÇÕES DE CHAT (COM LIMITE DE 15 MENSAGENS)
+    // FUNÇÕES DE CHAT OTIMIZADAS
     // =========================================
     function limitarChat() {
         while (chatDivLateral.children.length > MAX_CHAT_MESSAGES) {
@@ -1332,24 +1333,42 @@
         carregarListaJogadores();
     }
     
+    // =========================================
+    // FUNÇÃO OTIMIZADA: Mestre escuta apenas METADADOS
+    // =========================================
     function carregarListaJogadores() {
         if (!currentPin || !isMaster) return;
+        
+        if (listaJogadoresUnsubscribe) {
+            listaJogadoresUnsubscribe();
+            listaJogadoresUnsubscribe = null;
+        }
+        
         const jogadoresRef = ref(db, `mesas/${currentPin}/jogadores`);
-        onValue(jogadoresRef, (snapshot) => {
+        
+        const unsubscribe = onValue(jogadoresRef, (snapshot) => {
             const jogadores = snapshot.val();
             const grid = document.getElementById('gmPlayersGrid');
             if (!jogadores) {
                 grid.innerHTML = '<p style="font-size: 12px; color: #666;">Nenhum jogador conectado na mesa.</p>';
                 return;
             }
+            
             const jogadoresList = [];
             const npcsList = [];
+            
             Object.entries(jogadores).forEach(([id, data]) => {
                 if (data.isMaster) return;
-                const item = { id, nome: data.nome || 'Anônimo', personagemNome: data.personagemNome || 'Sem ficha', isNPC: data.isNPC === true };
+                const item = { 
+                    id, 
+                    nome: data.nome || 'Anônimo', 
+                    personagemNome: data.personagemNome || 'Sem ficha', 
+                    isNPC: data.isNPC === true 
+                };
                 if (data.isNPC) npcsList.push(item);
                 else jogadoresList.push(item);
             });
+            
             let html = '';
             if (jogadoresList.length > 0) {
                 html += `<div style="grid-column: 1/-1; margin-top: 5px; margin-bottom: 5px;"><strong>🎲 Jogadores:</strong></div>`;
@@ -1362,6 +1381,7 @@
             } else {
                 html += `<div style="grid-column: 1/-1; color: #666; padding: 10px; text-align: center;">Nenhum jogador conectado.</div>`;
             }
+            
             if (npcsList.length > 0) {
                 html += `<div style="grid-column: 1/-1; margin-top: 15px; margin-bottom: 5px;"><strong>📦 NPCs (Minhas Fichas):</strong></div>`;
                 npcsList.forEach(n => {
@@ -1371,11 +1391,16 @@
                     </div>`;
                 });
             }
+            
             grid.innerHTML = html || '<p style="font-size: 12px; color: #666;">Nenhuma ficha disponível.</p>';
         });
+        
+        listaJogadoresUnsubscribe = () => unsubscribe();
     }
     
-    window.selecionarFicha = async (idAlvo) => { await carregarFichaPorId(idAlvo); };
+    window.selecionarFicha = async (idAlvo) => { 
+        await carregarFichaPorId(idAlvo); 
+    };
     
     window.excluirFicha = async (idAlvo) => {
         if (!confirm('Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.')) return;
@@ -1558,6 +1583,12 @@
             await update(jogadorRef, { conectado: false });
         }
         currentPin = null; currentUserId = null; currentUserName = null; isMaster = false; isGM = false; visualizandoId = null;
+        
+        if (listaJogadoresUnsubscribe) {
+            listaJogadoresUnsubscribe();
+            listaJogadoresUnsubscribe = null;
+        }
+        
         loginScreen.style.display = 'flex';
         fichaScreen.style.display = 'none';
         document.getElementById('pinInput').value = '';
@@ -1638,7 +1669,6 @@
         return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
     
-    // Evento de input com debounce
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             if (currentPin && visualizandoId) {
