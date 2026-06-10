@@ -421,9 +421,10 @@
             padding: 40px;
         }
         
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card-lista, .card-full { background: #2a2a2a; padding: 15px; border-radius: 12px; }
-        .card-full { grid-column: span 3; }
+        .card-full { grid-column: span 4; }
         
         .lista { display: flex; flex-direction: column; gap: 10px; max-height: 400px; overflow-y: auto; margin-bottom: 15px; }
         .item { background: #1b1b1b; border-radius: 8px; overflow: hidden; margin-bottom: 5px; }
@@ -495,6 +496,115 @@
             cursor: pointer;
         }
         
+        .subficha-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #444;
+        }
+        .subficha-title {
+            font-size: 20px;
+            color: #d4af37;
+        }
+        .subficha-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .subficha-card {
+            background: #1e1e1e;
+            border: 1px solid #4a6a8a;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .subficha-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .subficha-tipo {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: #4a6a8a;
+        }
+        .subficha-tipo.aliado { background: #2a5a2a; }
+        .subficha-tipo.familiar { background: #8a6a35; }
+        .subficha-tipo.invocacao { background: #6a2a6a; }
+        .subficha-pv {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .subficha-acoes {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-subficha {
+            background: #4a6a8a;
+            border: none;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .btn-subficha.editar { background: #5d4723; }
+        .btn-subficha.excluir { background: #772222; }
+        .btn-subficha:hover { filter: brightness(1.1); }
+        
+        .subficha-detalhes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #444;
+        }
+        .subficha-atributo {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1b1b1b;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+        
+        .modal-criar-subficha {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+        .modal-subficha-content {
+            background: #2a2a2a;
+            border-radius: 16px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #d4af37;
+        }
+        .modal-subficha-content select, 
+        .modal-subficha-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 6px;
+        }
+        
         .dice-anim { position: fixed; top: 20px; right: 20px; font-size: 40px; opacity: 0; pointer-events: none; transition: all 0.3s; }
         
         @media (max-width: 1100px) {
@@ -508,9 +618,12 @@
             .chat-mensagens-lateral {
                 max-height: 200px;
             }
+            .grid-4 { grid-template-columns: repeat(2, 1fr); }
+            .card-full { grid-column: span 2; }
         }
         @media (max-width: 900px) {
             .grid-3 { grid-template-columns: 1fr; }
+            .grid-4 { grid-template-columns: 1fr; }
             .card-full { grid-column: span 1; }
             .layout-duas-colunas { flex-direction: column; }
             .card-recursos { grid-template-columns: repeat(3, 1fr); }
@@ -567,8 +680,10 @@
                         <button class="aba-btn" data-aba="inventario">🎒 Inventário</button>
                         <button class="aba-btn" data-aba="magias">🔮 Magias</button>
                         <button class="aba-btn" data-aba="kits">📦 Kits</button>
+                        <button class="aba-btn" data-aba="subfichas">👥 Mais Fichas</button>
                     </div>
                     
+                    <!-- Aba Principal -->
                     <div id="aba-principal" class="aba-conteudo ativa">
                         <div class="layout-duas-colunas">
                             <div class="coluna-esquerda">
@@ -580,7 +695,6 @@
                                     <input type="file" id="uploadAvatar" accept="image/*" style="display:none;">
                                     <button class="btn-upload" id="btnAvatar">📷 Escolher Imagem</button>
                                 </div>
-                                
                                 <div class="xp-converter-card">
                                     <h3 style="margin-top:0;">⭐ Pontos de Experiência</h3>
                                     <div class="xp-converter-row">
@@ -590,7 +704,6 @@
                                     <div class="xp-info">💡 10 XP = 1 ponto de personagem</div>
                                 </div>
                             </div>
-                            
                             <div class="coluna-direita">
                                 <div class="card-atributos">
                                     <div class="grid-atributos">
@@ -601,7 +714,6 @@
                                         <div class="atributo"><span>🔮 PdF</span><input type="number" id="pdf" value="0" min="0"><input type="number" id="bonusPdf" class="bonus" value="0"><button class="btn-atributo" data-nome="PdF" data-id="pdf">🎲</button></div>
                                     </div>
                                 </div>
-                                
                                 <div class="card-recursos">
                                     <div class="recurso"><label>❤️ PV</label><input type="number" id="pvTotal" placeholder="Total"><input type="number" id="pvAtual" placeholder="Atual"></div>
                                     <div class="recurso"><label>✨ PM</label><input type="number" id="pmTotal" placeholder="Total"><input type="number" id="pmAtual" placeholder="Atual"></div>
@@ -609,7 +721,6 @@
                                     <div class="recurso"><label>⭐ XP</label><input type="number" id="xp" value="0"></div>
                                     <div class="recurso"><label>🪙 T$</label><input type="number" id="dinheiro" value="0"></div>
                                 </div>
-                                
                                 <div class="card-roll">
                                     <h3>🎲 Rolagem Genérica</h3>
                                     <div class="roll-row"><label>Quantidade de dados:</label><input type="number" id="qtdDados" value="1" min="1" max="20"></div>
@@ -619,7 +730,6 @@
                                         <input type="checkbox" id="chkSecretRoll"> 🕵️ Rolar em Segredo (Ocultar da Mesa)
                                     </div>
                                 </div>
-                                
                                 <div class="botoes-acao">
                                     <button class="btn-acao" id="btnAtaqueCurto">⚔️ Ataque Curto</button>
                                     <button class="btn-acao" id="btnAtaqueDistancia">🏹 Ataque Distância</button>
@@ -629,11 +739,13 @@
                         </div>
                     </div>
                     
+                    <!-- Aba Vantagens com 4 colunas (incluindo Especializações) -->
                     <div id="aba-vantagens" class="aba-conteudo">
-                        <div class="grid-3">
+                        <div class="grid-4">
                             <div class="card-lista"><h3>✅ Vantagens</h3><div id="vantagensLista" class="lista"></div><button class="btn-add" id="addVantagem">+ Adicionar Vantagem</button></div>
                             <div class="card-lista"><h3>❌ Desvantagens</h3><div id="desvantagensLista" class="lista"></div><button class="btn-add" id="addDesvantagem">+ Adicionar Desvantagem</button></div>
                             <div class="card-lista"><h3>⚡ Perícias</h3><div id="periciasLista" class="lista"></div><button class="btn-add" id="addPericia">+ Adicionar Perícia</button></div>
+                            <div class="card-lista"><h3>⚡ Especializações</h3><div id="especializacoesLista" class="lista"></div><button class="btn-add" id="addEspecializacao">+ Adicionar Especialização</button></div>
                         </div>
                         <div class="card-full" style="margin-top: 20px;">
                             <h3>🌟 Vantagem Única</h3>
@@ -650,6 +762,7 @@
                         </div>
                     </div>
                     
+                    <!-- Aba Inventário -->
                     <div id="aba-inventario" class="aba-conteudo">
                         <div class="grid-3">
                             <div class="card-lista"><h3>📦 Itens</h3><div id="itensLista" class="lista"></div><button class="btn-add" id="addItem">+ Adicionar Item</button></div>
@@ -658,12 +771,24 @@
                         </div>
                     </div>
                     
+                    <!-- Aba Magias -->
                     <div id="aba-magias" class="aba-conteudo">
                         <div class="card-full"><h3>🔮 Magias</h3><div id="magiasLista" class="lista"></div><button class="btn-add" id="addMagia">+ Adicionar Magia</button></div>
                     </div>
                     
+                    <!-- Aba Kits -->
                     <div id="aba-kits" class="aba-conteudo">
                         <div class="card-full"><h3>📦 Kits</h3><div id="kitsLista" class="lista-kits"></div><button class="btn-add" id="addKit">+ Adicionar Kit</button></div>
+                    </div>
+                    
+                    <!-- Aba Sub-Fichas -->
+                    <div id="aba-subfichas" class="aba-conteudo">
+                        <div style="margin-bottom: 15px;">
+                            <button id="btnCriarSubFicha" class="btn-add">➕ Criar Nova Sub-Ficha (Aliado/Familiar/Invocação)</button>
+                        </div>
+                        <div id="subfichasContainer">
+                            <div style="text-align: center; color: #666; padding: 40px;">Nenhuma sub-ficha criada. Clique no botão acima para criar.</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -678,6 +803,51 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de criação de sub-ficha -->
+<div id="modalCriarSubFicha" class="modal-criar-subficha">
+    <div class="modal-subficha-content">
+        <h3>➕ Criar Nova Sub-Ficha</h3>
+        <select id="subfichaTipo">
+            <option value="aliado">🤝 Aliado</option>
+            <option value="familiar">🐾 Familiar</option>
+            <option value="invocacao">✨ Invocação</option>
+        </select>
+        <input type="text" id="subfichaNome" placeholder="Nome da sub-ficha">
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button id="btnConfirmarSubFicha" class="btn-primary" style="background: #5d4723;">Criar</button>
+            <button id="btnCancelarSubFicha" class="btn">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de edição de sub-ficha -->
+<div id="modalEditarSubFicha" class="modal-criar-subficha" style="display: none;">
+    <div class="modal-subficha-content" style="max-width: 600px;">
+        <h3 id="editarSubFichaTitulo">✏️ Editando: <span id="editarSubFichaNome"></span></h3>
+        <div style="margin: 15px 0;">
+            <h4>Atributos</h4>
+            <div class="grid-atributos" style="margin-top: 10px;">
+                <div class="atributo"><span>💪 F</span><input type="number" id="editForca" value="0"><input type="number" id="editBonusForca" class="bonus" value="0"></div>
+                <div class="atributo"><span>🎯 H</span><input type="number" id="editHabilidade" value="0"><input type="number" id="editBonusHabilidade" class="bonus" value="0"></div>
+                <div class="atributo"><span>🛡️ R</span><input type="number" id="editResistencia" value="0"><input type="number" id="editBonusResistencia" class="bonus" value="0"></div>
+                <div class="atributo"><span>⚔️ A</span><input type="number" id="editArmadura" value="0"><input type="number" id="editBonusArmadura" class="bonus" value="0"></div>
+                <div class="atributo"><span>🔮 PdF</span><input type="number" id="editPdf" value="0"><input type="number" id="editBonusPdf" class="bonus" value="0"></div>
+            </div>
+        </div>
+        <div style="margin: 15px 0;">
+            <h4>Pontos de Vida</h4>
+            <div style="display: flex; gap: 10px;">
+                <div class="recurso"><label>❤️ PV Total</label><input type="number" id="editPvTotal" value="0"></div>
+                <div class="recurso"><label>❤️ PV Atual</label><input type="number" id="editPvAtual" value="0"></div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button id="btnSalvarSubFicha" class="btn-primary" style="background: #5d4723;">Salvar</button>
+            <button id="btnFecharSubFicha" class="btn">Fechar</button>
         </div>
     </div>
 </div>
@@ -708,8 +878,10 @@
     let isMaster = false;
     let isGM = false;
     let visualizandoId = null;
+    let subFichasAtuais = [];
+    let editandoSubFichaId = null;
     
-    let fichaListas = { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
+    let fichaListas = { vantagens: [], desvantagens: [], pericias: [], especializacoes: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] };
     
     const loginScreen = document.getElementById('loginScreen');
     const fichaScreen = document.getElementById('fichaScreen');
@@ -720,7 +892,6 @@
     const diceAnim = document.getElementById('diceAnim');
     const pontosField = document.getElementById('pontos');
     
-    // ========== OTIMIZAÇÕES ==========
     let saveTimeout = null;
     const MAX_CHAT_MESSAGES = 15;
     let listaJogadoresUnsubscribe = null;
@@ -737,14 +908,12 @@
     // =========================================
     function calcularGastosTotais() {
         let gastos = 0;
-        
         gastos += parseInt(document.getElementById('forca')?.value) || 0;
         gastos += parseInt(document.getElementById('habilidade')?.value) || 0;
         gastos += parseInt(document.getElementById('resistencia')?.value) || 0;
         gastos += parseInt(document.getElementById('armadura')?.value) || 0;
         gastos += parseInt(document.getElementById('pdf')?.value) || 0;
         gastos += parseInt(document.getElementById('vantagemUnicaCusto')?.value) || 0;
-        
         if (fichaListas.vantagens) {
             fichaListas.vantagens.forEach(v => { gastos += parseInt(v.valor) || 0; });
         }
@@ -753,6 +922,9 @@
         }
         if (fichaListas.pericias) {
             fichaListas.pericias.forEach(p => { gastos += parseInt(p.valor) || 0; });
+        }
+        if (fichaListas.especializacoes) {
+            fichaListas.especializacoes.forEach(e => { gastos += parseInt(e.valor) || 0; });
         }
         if (fichaListas.kits) {
             fichaListas.kits.forEach(kit => {
@@ -790,7 +962,7 @@
     }
     
     // =========================================
-    // FUNÇÕES DE CHAT OTIMIZADAS
+    // FUNÇÕES DE CHAT
     // =========================================
     function limitarChat() {
         while (chatDivLateral.children.length > MAX_CHAT_MESSAGES) {
@@ -810,10 +982,8 @@
         const labelSecreto = ehSecreta ? ' <span style="color:#ffb74d;">[SEGREDO]</span>' : '';
         msgDiv.innerHTML = `<div class="mensagem-header"><strong>${escapeHtml(nome)}${labelSecreto}</strong><span class="mensagem-time">${hora}</span></div><div class="mensagem-texto">${escapeHtml(texto)}</div>`;
         chatDivLateral.insertBefore(msgDiv, chatDivLateral.firstChild);
-        
         const emptyChat = chatDivLateral.querySelector('.empty-chat');
         if (emptyChat) emptyChat.remove();
-        
         limitarChat();
     }
     
@@ -999,7 +1169,145 @@
     }
     
     // =========================================
-    // LISTAS DINÂMICAS
+    // SUB-FICHAS
+    // =========================================
+    function renderizarSubFichas() {
+        const container = document.getElementById('subfichasContainer');
+        if (!container) return;
+        
+        if (!subFichasAtuais || subFichasAtuais.length === 0) {
+            container.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">Nenhuma sub-ficha criada. Clique no botão acima para criar.</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        subFichasAtuais.forEach((sub, idx) => {
+            const podeEditar = isGM || sub.criadoPor === currentUserId;
+            const tipoDisplay = sub.tipo === 'aliado' ? '🤝 Aliado' : (sub.tipo === 'familiar' ? '🐾 Familiar' : '✨ Invocação');
+            const tipoClass = sub.tipo === 'aliado' ? 'aliado' : (sub.tipo === 'familiar' ? 'familiar' : 'invocacao');
+            
+            const card = document.createElement('div');
+            card.className = 'subficha-card';
+            card.innerHTML = `
+                <div class="subficha-card-header">
+                    <div>
+                        <strong>${escapeHtml(sub.nome)}</strong>
+                        <span class="subficha-tipo ${tipoClass}">${tipoDisplay}</span>
+                    </div>
+                    <div class="subficha-pv">❤️ PV: ${sub.pvAtual || 0}/${sub.pvTotal || 0}</div>
+                    <div class="subficha-acoes">
+                        ${podeEditar ? `<button class="btn-subficha editar" data-idx="${idx}">✏️ Editar</button>` : ''}
+                        ${podeEditar ? `<button class="btn-subficha excluir" data-idx="${idx}">🗑️ Excluir</button>` : ''}
+                        ${!podeEditar ? '<span style="font-size:11px;color:#666;">(apenas leitura)</span>' : ''}
+                    </div>
+                </div>
+                <div class="subficha-detalhes">
+                    <div class="subficha-atributo"><span>💪 F</span><span>${sub.forca || 0} ${sub.bonusForca ? `(+${sub.bonusForca})` : ''}</span></div>
+                    <div class="subficha-atributo"><span>🎯 H</span><span>${sub.habilidade || 0} ${sub.bonusHabilidade ? `(+${sub.bonusHabilidade})` : ''}</span></div>
+                    <div class="subficha-atributo"><span>🛡️ R</span><span>${sub.resistencia || 0} ${sub.bonusResistencia ? `(+${sub.bonusResistencia})` : ''}</span></div>
+                    <div class="subficha-atributo"><span>⚔️ A</span><span>${sub.armadura || 0} ${sub.bonusArmadura ? `(+${sub.bonusArmadura})` : ''}</span></div>
+                    <div class="subficha-atributo"><span>🔮 PdF</span><span>${sub.pdf || 0} ${sub.bonusPdf ? `(+${sub.bonusPdf})` : ''}</span></div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        
+        document.querySelectorAll('.btn-subficha.editar').forEach(btn => {
+            btn.onclick = () => {
+                const idx = parseInt(btn.dataset.idx);
+                abrirEditorSubFicha(idx);
+            };
+        });
+        
+        document.querySelectorAll('.btn-subficha.excluir').forEach(btn => {
+            btn.onclick = () => {
+                const idx = parseInt(btn.dataset.idx);
+                if (confirm('Tem certeza que deseja excluir esta sub-ficha?')) {
+                    subFichasAtuais.splice(idx, 1);
+                    renderizarSubFichas();
+                    salvarFichaAtual();
+                }
+            };
+        });
+    }
+    
+    function abrirEditorSubFicha(idx) {
+        const sub = subFichasAtuais[idx];
+        if (!sub) return;
+        editandoSubFichaId = idx;
+        document.getElementById('editarSubFichaNome').innerText = sub.nome;
+        document.getElementById('editForca').value = sub.forca || 0;
+        document.getElementById('editBonusForca').value = sub.bonusForca || 0;
+        document.getElementById('editHabilidade').value = sub.habilidade || 0;
+        document.getElementById('editBonusHabilidade').value = sub.bonusHabilidade || 0;
+        document.getElementById('editResistencia').value = sub.resistencia || 0;
+        document.getElementById('editBonusResistencia').value = sub.bonusResistencia || 0;
+        document.getElementById('editArmadura').value = sub.armadura || 0;
+        document.getElementById('editBonusArmadura').value = sub.bonusArmadura || 0;
+        document.getElementById('editPdf').value = sub.pdf || 0;
+        document.getElementById('editBonusPdf').value = sub.bonusPdf || 0;
+        document.getElementById('editPvTotal').value = sub.pvTotal || 0;
+        document.getElementById('editPvAtual').value = sub.pvAtual || 0;
+        document.getElementById('modalEditarSubFicha').style.display = 'flex';
+    }
+    
+    function salvarEdicaoSubFicha() {
+        if (editandoSubFichaId === null) return;
+        const sub = subFichasAtuais[editandoSubFichaId];
+        if (!sub) return;
+        
+        sub.forca = parseInt(document.getElementById('editForca').value) || 0;
+        sub.bonusForca = parseInt(document.getElementById('editBonusForca').value) || 0;
+        sub.habilidade = parseInt(document.getElementById('editHabilidade').value) || 0;
+        sub.bonusHabilidade = parseInt(document.getElementById('editBonusHabilidade').value) || 0;
+        sub.resistencia = parseInt(document.getElementById('editResistencia').value) || 0;
+        sub.bonusResistencia = parseInt(document.getElementById('editBonusResistencia').value) || 0;
+        sub.armadura = parseInt(document.getElementById('editArmadura').value) || 0;
+        sub.bonusArmadura = parseInt(document.getElementById('editBonusArmadura').value) || 0;
+        sub.pdf = parseInt(document.getElementById('editPdf').value) || 0;
+        sub.bonusPdf = parseInt(document.getElementById('editBonusPdf').value) || 0;
+        sub.pvTotal = parseInt(document.getElementById('editPvTotal').value) || 0;
+        sub.pvAtual = parseInt(document.getElementById('editPvAtual').value) || 0;
+        
+        renderizarSubFichas();
+        salvarFichaAtual();
+        document.getElementById('modalEditarSubFicha').style.display = 'none';
+        editandoSubFichaId = null;
+    }
+    
+    function criarSubFicha() {
+        const tipo = document.getElementById('subfichaTipo').value;
+        const nome = document.getElementById('subfichaNome').value.trim();
+        if (!nome) {
+            alert('Digite um nome para a sub-ficha!');
+            return;
+        }
+        
+        const novaSub = {
+            id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 6),
+            tipo: tipo,
+            nome: nome,
+            criadoPor: currentUserId,
+            forca: 0, bonusForca: 0,
+            habilidade: 0, bonusHabilidade: 0,
+            resistencia: 0, bonusResistencia: 0,
+            armadura: 0, bonusArmadura: 0,
+            pdf: 0, bonusPdf: 0,
+            pvTotal: 10,
+            pvAtual: 10,
+            temporario: tipo === 'invocacao'
+        };
+        
+        subFichasAtuais.push(novaSub);
+        renderizarSubFichas();
+        salvarFichaAtual();
+        
+        document.getElementById('subfichaNome').value = '';
+        document.getElementById('modalCriarSubFicha').style.display = 'none';
+    }
+    
+    // =========================================
+    // LISTAS DINÂMICAS (incluindo Especializações)
     // =========================================
     function renderizarLista(tipo, containerId) {
         const container = document.getElementById(containerId);
@@ -1184,7 +1492,8 @@
             pvTotal: '', pvAtual: '', pmTotal: '', pmAtual: '',
             vantagemUnicaNome: '', vantagemUnicaCusto: 0, vantagemUnicaDesc: '',
             avatarSrc: '',
-            listas: { vantagens: [], desvantagens: [], pericias: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] }
+            listas: { vantagens: [], desvantagens: [], pericias: [], especializacoes: [], itens: [], equipamentos: [], tiposDano: [], magias: [], kits: [] },
+            subFichas: []
         };
     }
     
@@ -1213,7 +1522,8 @@
             vantagemUnicaCusto: parseInt(document.getElementById('vantagemUnicaCusto').value) || 0,
             vantagemUnicaDesc: document.getElementById('vantagemUnicaDesc').value,
             avatarSrc: (document.getElementById('avatarBtn').querySelector('img')?.src) || '',
-            listas: fichaListas
+            listas: fichaListas,
+            subFichas: subFichasAtuais
         };
     }
     
@@ -1271,6 +1581,7 @@
             vantagens: f.listas?.vantagens || [],
             desvantagens: f.listas?.desvantagens || [],
             pericias: f.listas?.pericias || [],
+            especializacoes: f.listas?.especializacoes || [],
             itens: f.listas?.itens || [],
             equipamentos: f.listas?.equipamentos || [],
             tiposDano: f.listas?.tiposDano || [],
@@ -1278,14 +1589,18 @@
             kits: f.listas?.kits || []
         };
         
+        subFichasAtuais = f.subFichas || [];
+        
         renderizarLista('vantagens', 'vantagensLista');
         renderizarLista('desvantagens', 'desvantagensLista');
         renderizarLista('pericias', 'periciasLista');
+        renderizarLista('especializacoes', 'especializacoesLista');
         renderizarLista('itens', 'itensLista');
         renderizarLista('equipamentos', 'equipamentosLista');
         renderizarLista('tiposDano', 'tiposDanoLista');
         renderizarLista('magias', 'magiasLista');
         renderizarKits();
+        renderizarSubFichas();
         atualizarBotaoConverter();
         atualizarPontos();
     }
@@ -1333,19 +1648,13 @@
         carregarListaJogadores();
     }
     
-    // =========================================
-    // FUNÇÃO OTIMIZADA: Mestre escuta apenas METADADOS
-    // =========================================
     function carregarListaJogadores() {
         if (!currentPin || !isMaster) return;
-        
         if (listaJogadoresUnsubscribe) {
             listaJogadoresUnsubscribe();
             listaJogadoresUnsubscribe = null;
         }
-        
         const jogadoresRef = ref(db, `mesas/${currentPin}/jogadores`);
-        
         const unsubscribe = onValue(jogadoresRef, (snapshot) => {
             const jogadores = snapshot.val();
             const grid = document.getElementById('gmPlayersGrid');
@@ -1353,22 +1662,14 @@
                 grid.innerHTML = '<p style="font-size: 12px; color: #666;">Nenhum jogador conectado na mesa.</p>';
                 return;
             }
-            
             const jogadoresList = [];
             const npcsList = [];
-            
             Object.entries(jogadores).forEach(([id, data]) => {
                 if (data.isMaster) return;
-                const item = { 
-                    id, 
-                    nome: data.nome || 'Anônimo', 
-                    personagemNome: data.personagemNome || 'Sem ficha', 
-                    isNPC: data.isNPC === true 
-                };
+                const item = { id, nome: data.nome || 'Anônimo', personagemNome: data.personagemNome || 'Sem ficha', isNPC: data.isNPC === true };
                 if (data.isNPC) npcsList.push(item);
                 else jogadoresList.push(item);
             });
-            
             let html = '';
             if (jogadoresList.length > 0) {
                 html += `<div style="grid-column: 1/-1; margin-top: 5px; margin-bottom: 5px;"><strong>🎲 Jogadores:</strong></div>`;
@@ -1381,7 +1682,6 @@
             } else {
                 html += `<div style="grid-column: 1/-1; color: #666; padding: 10px; text-align: center;">Nenhum jogador conectado.</div>`;
             }
-            
             if (npcsList.length > 0) {
                 html += `<div style="grid-column: 1/-1; margin-top: 15px; margin-bottom: 5px;"><strong>📦 NPCs (Minhas Fichas):</strong></div>`;
                 npcsList.forEach(n => {
@@ -1391,16 +1691,12 @@
                     </div>`;
                 });
             }
-            
             grid.innerHTML = html || '<p style="font-size: 12px; color: #666;">Nenhuma ficha disponível.</p>';
         });
-        
         listaJogadoresUnsubscribe = () => unsubscribe();
     }
     
-    window.selecionarFicha = async (idAlvo) => { 
-        await carregarFichaPorId(idAlvo); 
-    };
+    window.selecionarFicha = async (idAlvo) => { await carregarFichaPorId(idAlvo); };
     
     window.excluirFicha = async (idAlvo) => {
         if (!confirm('Tem certeza que deseja excluir esta ficha? Esta ação não pode ser desfeita.')) return;
@@ -1583,12 +1879,10 @@
             await update(jogadorRef, { conectado: false });
         }
         currentPin = null; currentUserId = null; currentUserName = null; isMaster = false; isGM = false; visualizandoId = null;
-        
         if (listaJogadoresUnsubscribe) {
             listaJogadoresUnsubscribe();
             listaJogadoresUnsubscribe = null;
         }
-        
         loginScreen.style.display = 'flex';
         fichaScreen.style.display = 'none';
         document.getElementById('pinInput').value = '';
@@ -1610,6 +1904,24 @@
     document.getElementById('btnConverterXP').onclick = converterXP;
     document.getElementById('xp').addEventListener('input', atualizarBotaoConverter);
     document.getElementById('xpConverterAmount').addEventListener('input', atualizarBotaoConverter);
+    
+    // Eventos de sub-fichas
+    document.getElementById('btnCriarSubFicha').onclick = () => {
+        document.getElementById('subfichaNome').value = '';
+        document.getElementById('modalCriarSubFicha').style.display = 'flex';
+    };
+    document.getElementById('btnConfirmarSubFicha').onclick = () => criarSubFicha();
+    document.getElementById('btnCancelarSubFicha').onclick = () => {
+        document.getElementById('modalCriarSubFicha').style.display = 'none';
+    };
+    document.getElementById('btnSalvarSubFicha').onclick = () => salvarEdicaoSubFicha();
+    document.getElementById('btnFecharSubFicha').onclick = () => {
+        document.getElementById('modalEditarSubFicha').style.display = 'none';
+        editandoSubFichaId = null;
+    };
+    
+    // Evento para Especializações
+    document.getElementById('addEspecializacao').onclick = () => adicionarItemLista('especializacoes', 'especializacoesLista');
     
     const atributosIds = ['forca', 'habilidade', 'resistencia', 'armadura', 'pdf'];
     atributosIds.forEach(id => {
