@@ -720,6 +720,17 @@
     const diceAnim = document.getElementById('diceAnim');
     const pontosField = document.getElementById('pontos');
     
+    // ========== DEBOUNCE PARA SALVAMENTO ==========
+    let saveTimeout = null;
+    const MAX_CHAT_MESSAGES = 15;
+    
+    function debounceSave() {
+        if (saveTimeout) clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            salvarFichaAtual();
+        }, 1000);
+    }
+    
     // =========================================
     // FUNÇÕES DE CÁLCULO DE PONTOS
     // =========================================
@@ -778,8 +789,18 @@
     }
     
     // =========================================
-    // FUNÇÕES DE CHAT
+    // FUNÇÕES DE CHAT (COM LIMITE DE 15 MENSAGENS)
     // =========================================
+    function limitarChat() {
+        while (chatDivLateral.children.length > MAX_CHAT_MESSAGES) {
+            chatDivLateral.removeChild(chatDivLateral.lastChild);
+        }
+        const emptyChat = chatDivLateral.querySelector('.empty-chat');
+        if (chatDivLateral.children.length === 0 && emptyChat === null) {
+            chatDivLateral.innerHTML = '<div class="empty-chat">📢 Nenhuma rolagem ainda.</div>';
+        }
+    }
+    
     function addMensagem(texto, ehSecreta = false) {
         const nome = document.getElementById('nomePersonagem').value || currentUserName || 'Jogador';
         const hora = new Date().toLocaleTimeString();
@@ -788,9 +809,11 @@
         const labelSecreto = ehSecreta ? ' <span style="color:#ffb74d;">[SEGREDO]</span>' : '';
         msgDiv.innerHTML = `<div class="mensagem-header"><strong>${escapeHtml(nome)}${labelSecreto}</strong><span class="mensagem-time">${hora}</span></div><div class="mensagem-texto">${escapeHtml(texto)}</div>`;
         chatDivLateral.insertBefore(msgDiv, chatDivLateral.firstChild);
+        
         const emptyChat = chatDivLateral.querySelector('.empty-chat');
         if (emptyChat) emptyChat.remove();
-        if (chatDivLateral.children.length > 50) { while (chatDivLateral.children.length > 50) chatDivLateral.removeChild(chatDivLateral.lastChild); }
+        
+        limitarChat();
     }
     
     async function enviarRolagemFirebase(texto, ehSecreta = false) {
@@ -817,14 +840,20 @@
             }
             const rolagensList = Object.values(rolagens).sort((a,b) => b.timestamp - a.timestamp);
             chatDivLateral.innerHTML = '';
+            let count = 0;
             rolagensList.forEach(r => {
+                if (count >= MAX_CHAT_MESSAGES) return;
                 const hora = new Date(r.timestamp).toLocaleTimeString();
                 const msgDiv = document.createElement('div');
                 msgDiv.className = r.secreta ? 'mensagem secreta' : 'mensagem';
                 const labelSecreto = r.secreta ? ' <span style="color:#ffb74d;">[SEGREDO]</span>' : '';
                 msgDiv.innerHTML = `<div class="mensagem-header"><strong>${escapeHtml(r.jogador)}${labelSecreto}</strong><span class="mensagem-time">${hora}</span></div><div class="mensagem-texto">${escapeHtml(r.texto)}</div>`;
                 chatDivLateral.appendChild(msgDiv);
+                count++;
             });
+            if (chatDivLateral.children.length === 0) {
+                chatDivLateral.innerHTML = '<div class="empty-chat">📢 Nenhuma rolagem ainda.</div>';
+            }
         });
     }
     
@@ -853,7 +882,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFichaAtual();
+        debounceSave();
     }
     
     function ataqueCurto() {
@@ -869,7 +898,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFichaAtual();
+        debounceSave();
     }
     
     function ataqueDistancia() {
@@ -885,7 +914,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFichaAtual();
+        debounceSave();
     }
     
     function defesa() {
@@ -901,7 +930,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFichaAtual();
+        debounceSave();
     }
     
     function rolarGenerico() {
@@ -919,7 +948,7 @@
         const ehSecreta = isGM && document.getElementById('chkSecretRoll')?.checked === true;
         addMensagem(resultado, ehSecreta);
         if (!ehSecreta) enviarRolagemFirebase(resultado, false);
-        salvarFichaAtual();
+        debounceSave();
     }
     
     // =========================================
@@ -1557,14 +1586,14 @@
         if (el) {
             el.addEventListener('input', () => {
                 atualizarPontos();
-                salvarFichaAtual();
+                debounceSave();
             });
         }
     });
     
     document.getElementById('vantagemUnicaCusto')?.addEventListener('input', () => {
         atualizarPontos();
-        salvarFichaAtual();
+        debounceSave();
     });
     
     pontosField?.addEventListener('input', () => {
@@ -1584,7 +1613,7 @@
         } else {
             pontosField.classList.remove('pontos-negativo');
         }
-        salvarFichaAtual();
+        debounceSave();
     });
     
     let vantagemUnicaEditando = false;
@@ -1609,10 +1638,11 @@
         return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m));
     }
     
+    // Evento de input com debounce
     document.addEventListener('input', (e) => {
         if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
             if (currentPin && visualizandoId) {
-                salvarFichaAtual();
+                debounceSave();
             }
         }
     });
