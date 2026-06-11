@@ -571,6 +571,18 @@
             background: #7b5b2b;
             border-color: #d4af37;
         }
+        .subficha-aba-btn-abrir {
+            padding: 8px 16px;
+            background: #4a6a8a;
+            color: white;
+            border: 1px solid #555;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .subficha-aba-btn-abrir:hover {
+            background: #6a8aaa;
+        }
         .subficha-aba-conteudo {
             display: none;
         }
@@ -922,6 +934,7 @@
     const pontosField = document.getElementById('pontos');
     
     let saveTimeout = null;
+    let subFichaSaveTimeout = null;
     const MAX_CHAT_MESSAGES_DISPLAY = 30;
     const MAX_CHAT_MESSAGES_STORED = 50;
     let listaJogadoresUnsubscribe = null;
@@ -930,6 +943,11 @@
     function debounceSave() {
         if (saveTimeout) clearTimeout(saveTimeout);
         saveTimeout = setTimeout(() => { salvarFichaAtual(); }, 2000);
+    }
+    
+    function debounceSaveSubFicha() {
+        if (subFichaSaveTimeout) clearTimeout(subFichaSaveTimeout);
+        subFichaSaveTimeout = setTimeout(() => { salvarFichaAtual(); }, 2000);
     }
     
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m] || m)); }
@@ -1221,8 +1239,9 @@
     }
     
     // =========================================
-    // SUB-FICHAS
+    // SUB-FICHAS OTIMIZADO COM POPUPS E DEBOUNCE
     // =========================================
+    
     function getSubFichaVazia(nome, tipo, criadorId) {
         return {
             id: Date.now().toString() + '_' + Math.random().toString(36).substr(2, 6),
@@ -1240,17 +1259,302 @@
             pmTotal: 0, pmAtual: 0,
             vantagemUnicaNome: '', vantagemUnicaCusto: 0, vantagemUnicaDesc: '',
             listas: {
-                vantagens: [],
-                desvantagens: [],
-                pericias: [],
-                especializacoes: [],
-                itens: [],
-                equipamentos: [],
-                tiposDano: [],
-                magias: [],
-                kits: []
+                vantagens: [], desvantagens: [], pericias: [], especializacoes: [],
+                itens: [], equipamentos: [], tiposDano: [], magias: [], kits: []
             }
         };
+    }
+    
+    // Popup para Vantagens, Magias e Kits
+    function abrirPopupSubLista(subIndex, tipo) {
+        const sub = subFichas[subIndex];
+        if (!sub) return;
+        
+        const tiposDisplay = {
+            'vantagens': '✨ Vantagens',
+            'desvantagens': '❌ Desvantagens',
+            'pericias': '⚡ Perícias',
+            'especializacoes': '⚡ Especializações',
+            'magias': '🔮 Magias',
+            'kits': '📦 Kits'
+        };
+        
+        const popup = document.createElement('div');
+        popup.id = `popup-sub-lista-${tipo}-${Date.now()}`;
+        popup.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 3000;
+            overflow-y: auto; padding: 30px;
+        `;
+        
+        popup.innerHTML = `
+            <div style="max-width: 800px; margin: 0 auto; background: #1a1a1a; border-radius: 20px; border: 2px solid #d4af37; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+                    <h2 style="margin:0; color: #d4af37;">${tiposDisplay[tipo]} - ${escapeHtml(sub.nome)}</h2>
+                    <button class="close-popup-lista" style="background: #772222; border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;">✕ Fechar</button>
+                </div>
+                <div id="popup-sub-lista-conteudo-${tipo}">
+                    <div class="card-lista">
+                        <h3>${tiposDisplay[tipo]}</h3>
+                        <div id="popup-sub-${tipo}-lista-${subIndex}" class="lista" style="max-height: 500px;"></div>
+                        <button class="btn-add-popup-sub" data-tipo="${tipo}" data-sub="${subIndex}">+ Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        function renderizarPopupLista() {
+            const container = document.getElementById(`popup-sub-${tipo}-lista-${subIndex}`);
+            if (!container) return;
+            const lista = sub.listas[tipo] || [];
+            if (lista.length === 0) {
+                container.innerHTML = '<div style="color:#888; text-align:center; padding:40px;">Nenhum item. Clique em "+ Adicionar" para criar.</div>';
+                return;
+            }
+            container.innerHTML = '';
+            lista.forEach((elemento, idx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.style.marginBottom = '10px';
+                itemDiv.innerHTML = `
+                    <div class="item-linha">
+                        <input type="text" value="${escapeHtml(elemento.nome)}" placeholder="Nome" data-popup-field="nome" data-popup-idx="${idx}" data-popup-tipo="${tipo}" data-popup-sub="${subIndex}" style="flex:2;">
+                        <input type="text" class="valor" value="${escapeHtml(elemento.valor)}" placeholder="Custo" data-popup-field="valor" data-popup-idx="${idx}" data-popup-tipo="${tipo}" data-popup-sub="${subIndex}" style="flex:none; width:60px;">
+                        <button class="btn-desc-popup" data-popup-idx="${idx}" data-popup-tipo="${tipo}" data-popup-sub="${subIndex}">📖</button>
+                        <button class="btn-del-popup" data-popup-idx="${idx}" data-popup-tipo="${tipo}" data-popup-sub="${subIndex}">❌</button>
+                    </div>
+                    <div class="desc-editor" style="display: ${elemento.visivel ? 'block' : 'none'}; margin-top:8px;">
+                        <textarea rows="3" placeholder="Descrição detalhada..." data-popup-field="desc" data-popup-idx="${idx}" data-popup-tipo="${tipo}" data-popup-sub="${subIndex}" style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:5px; padding:8px;">${escapeHtml(elemento.desc)}</textarea>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+            
+            // Eventos do popup
+            container.querySelectorAll('.btn-desc-popup').forEach(btn => {
+                btn.onclick = () => {
+                    const idx = parseInt(btn.dataset.popupIdx);
+                    const tipoL = btn.dataset.popupTipo;
+                    const subIdx = parseInt(btn.dataset.popupSub);
+                    const descDiv = btn.closest('.item').querySelector('.desc-editor');
+                    if (descDiv) {
+                        const isVisible = descDiv.style.display === 'block';
+                        descDiv.style.display = isVisible ? 'none' : 'block';
+                        if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL][idx]) {
+                            subFichas[subIdx].listas[tipoL][idx].visivel = !isVisible;
+                            debounceSaveSubFicha();
+                        }
+                    }
+                };
+            });
+            
+            container.querySelectorAll('.btn-del-popup').forEach(btn => {
+                btn.onclick = () => {
+                    const idx = parseInt(btn.dataset.popupIdx);
+                    const tipoL = btn.dataset.popupTipo;
+                    const subIdx = parseInt(btn.dataset.popupSub);
+                    if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL]) {
+                        subFichas[subIdx].listas[tipoL].splice(idx, 1);
+                        renderizarPopupLista();
+                        debounceSaveSubFicha();
+                        if (document.getElementById('subfichaPopup').style.display === 'block') {
+                            renderizarSubFichaPopup(subFichas[subIdx], subIdx);
+                        }
+                    }
+                };
+            });
+            
+            container.querySelectorAll('input[data-popup-field="nome"], input[data-popup-field="valor"]').forEach(input => {
+                input.onchange = () => {
+                    const idx = parseInt(input.dataset.popupIdx);
+                    const field = input.dataset.popupField;
+                    const tipoL = input.dataset.popupTipo;
+                    const subIdx = parseInt(input.dataset.popupSub);
+                    if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL][idx]) {
+                        subFichas[subIdx].listas[tipoL][idx][field] = input.value;
+                        debounceSaveSubFicha();
+                        if (document.getElementById('subfichaPopup').style.display === 'block') {
+                            renderizarSubFichaPopup(subFichas[subIdx], subIdx);
+                        }
+                    }
+                };
+            });
+            
+            container.querySelectorAll('textarea[data-popup-field="desc"]').forEach(textarea => {
+                textarea.onchange = () => {
+                    const idx = parseInt(textarea.dataset.popupIdx);
+                    const tipoL = textarea.dataset.popupTipo;
+                    const subIdx = parseInt(textarea.dataset.popupSub);
+                    if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL][idx]) {
+                        subFichas[subIdx].listas[tipoL][idx].desc = textarea.value;
+                        debounceSaveSubFicha();
+                    }
+                };
+            });
+        }
+        
+        // Botão fechar
+        popup.querySelector('.close-popup-lista').onclick = () => {
+            popup.remove();
+            salvarFichaAtual();
+        };
+        
+        // Botão adicionar
+        const addBtn = popup.querySelector('.btn-add-popup-sub');
+        addBtn.onclick = () => {
+            if (!sub.listas[tipo]) sub.listas[tipo] = [];
+            sub.listas[tipo].push({ nome: '', valor: '', desc: '', visivel: false });
+            renderizarPopupLista();
+            debounceSaveSubFicha();
+        };
+        
+        renderizarPopupLista();
+    }
+    
+    // Popup de Inventário (com 3 listas)
+    function abrirPopupInventario(subIndex) {
+        const sub = subFichas[subIndex];
+        if (!sub) return;
+        
+        const popup = document.createElement('div');
+        popup.id = `popup-sub-inventario-${Date.now()}`;
+        popup.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 3000;
+            overflow-y: auto; padding: 30px;
+        `;
+        
+        popup.innerHTML = `
+            <div style="max-width: 900px; margin: 0 auto; background: #1a1a1a; border-radius: 20px; border: 2px solid #d4af37; padding: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #444; padding-bottom: 10px;">
+                    <h2 style="margin:0; color: #d4af37;">🎒 Inventário - ${escapeHtml(sub.nome)}</h2>
+                    <button class="close-inventario-popup" style="background: #772222; border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer;">✕ Fechar</button>
+                </div>
+                <div class="grid-3">
+                    <div class="card-lista"><h3>📦 Itens</h3><div id="popup-sub-itens-lista-${subIndex}" class="lista"></div><button class="btn-add-inventario-itens" data-tipo="itens">+ Adicionar Item</button></div>
+                    <div class="card-lista"><h3>⚔️ Equipamentos</h3><div id="popup-sub-equipamentos-lista-${subIndex}" class="lista"></div><button class="btn-add-inventario-equipamentos" data-tipo="equipamentos">+ Adicionar Equipamento</button></div>
+                    <div class="card-lista"><h3>💥 Tipos de Dano</h3><div id="popup-sub-tiposDano-lista-${subIndex}" class="lista"></div><button class="btn-add-inventario-tiposDano" data-tipo="tiposDano">+ Adicionar Tipo de Dano</button></div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        function renderizarListaInventario(tipoInv, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const lista = sub.listas[tipoInv] || [];
+            if (lista.length === 0) {
+                container.innerHTML = '<div style="color:#888; text-align:center; padding:20px;">Nenhum item</div>';
+                return;
+            }
+            container.innerHTML = '';
+            lista.forEach((elemento, idx) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.style.marginBottom = '8px';
+                itemDiv.innerHTML = `
+                    <div class="item-linha">
+                        <input type="text" value="${escapeHtml(elemento.nome)}" placeholder="Nome" data-inv-field="nome" data-inv-idx="${idx}" data-inv-tipo="${tipoInv}" style="flex:2;">
+                        <input type="text" class="valor" value="${escapeHtml(elemento.valor)}" placeholder="Custo" data-inv-field="valor" data-inv-idx="${idx}" data-inv-tipo="${tipoInv}" style="flex:none; width:60px;">
+                        <button class="btn-desc-inv" data-inv-idx="${idx}" data-inv-tipo="${tipoInv}">📖</button>
+                        <button class="btn-del-inv" data-inv-idx="${idx}" data-inv-tipo="${tipoInv}">❌</button>
+                    </div>
+                    <div class="desc-editor" style="display: ${elemento.visivel ? 'block' : 'none'}; margin-top:8px;">
+                        <textarea rows="2" placeholder="Descrição..." data-inv-field="desc" data-inv-idx="${idx}" data-inv-tipo="${tipoInv}" style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:5px; padding:8px;">${escapeHtml(elemento.desc)}</textarea>
+                    </div>
+                `;
+                container.appendChild(itemDiv);
+            });
+            
+            container.querySelectorAll('.btn-desc-inv').forEach(btn => {
+                btn.onclick = () => {
+                    const idx = parseInt(btn.dataset.invIdx);
+                    const tipoInv = btn.dataset.invTipo;
+                    const descDiv = btn.closest('.item').querySelector('.desc-editor');
+                    if (descDiv) {
+                        const isVisible = descDiv.style.display === 'block';
+                        descDiv.style.display = isVisible ? 'none' : 'block';
+                        if (sub.listas[tipoInv] && sub.listas[tipoInv][idx]) {
+                            sub.listas[tipoInv][idx].visivel = !isVisible;
+                            debounceSaveSubFicha();
+                        }
+                    }
+                };
+            });
+            
+            container.querySelectorAll('.btn-del-inv').forEach(btn => {
+                btn.onclick = () => {
+                    const idx = parseInt(btn.dataset.invIdx);
+                    const tipoInv = btn.dataset.invTipo;
+                    if (sub.listas[tipoInv]) {
+                        sub.listas[tipoInv].splice(idx, 1);
+                        renderizarListaInventario(tipoInv, containerId);
+                        debounceSaveSubFicha();
+                        if (document.getElementById('subfichaPopup').style.display === 'block') {
+                            renderizarSubFichaPopup(sub, subIndex);
+                        }
+                    }
+                };
+            });
+            
+            container.querySelectorAll('input[data-inv-field="nome"], input[data-inv-field="valor"]').forEach(input => {
+                input.onchange = () => {
+                    const idx = parseInt(input.dataset.invIdx);
+                    const field = input.dataset.invField;
+                    const tipoInv = input.dataset.invTipo;
+                    if (sub.listas[tipoInv] && sub.listas[tipoInv][idx]) {
+                        sub.listas[tipoInv][idx][field] = input.value;
+                        debounceSaveSubFicha();
+                    }
+                };
+            });
+            
+            container.querySelectorAll('textarea[data-inv-field="desc"]').forEach(textarea => {
+                textarea.onchange = () => {
+                    const idx = parseInt(textarea.dataset.invIdx);
+                    const tipoInv = textarea.dataset.invTipo;
+                    if (sub.listas[tipoInv] && sub.listas[tipoInv][idx]) {
+                        sub.listas[tipoInv][idx].desc = textarea.value;
+                        debounceSaveSubFicha();
+                    }
+                };
+            });
+        }
+        
+        // Botões de adicionar
+        popup.querySelector('.btn-add-inventario-itens').onclick = () => {
+            if (!sub.listas['itens']) sub.listas['itens'] = [];
+            sub.listas['itens'].push({ nome: '', valor: '', desc: '', visivel: false });
+            renderizarListaInventario('itens', `popup-sub-itens-lista-${subIndex}`);
+            debounceSaveSubFicha();
+        };
+        
+        popup.querySelector('.btn-add-inventario-equipamentos').onclick = () => {
+            if (!sub.listas['equipamentos']) sub.listas['equipamentos'] = [];
+            sub.listas['equipamentos'].push({ nome: '', valor: '', desc: '', visivel: false });
+            renderizarListaInventario('equipamentos', `popup-sub-equipamentos-lista-${subIndex}`);
+            debounceSaveSubFicha();
+        };
+        
+        popup.querySelector('.btn-add-inventario-tiposDano').onclick = () => {
+            if (!sub.listas['tiposDano']) sub.listas['tiposDano'] = [];
+            sub.listas['tiposDano'].push({ nome: '', valor: '', desc: '', visivel: false });
+            renderizarListaInventario('tiposDano', `popup-sub-tiposDano-lista-${subIndex}`);
+            debounceSaveSubFicha();
+        };
+        
+        // Botão fechar
+        popup.querySelector('.close-inventario-popup').onclick = () => {
+            popup.remove();
+            salvarFichaAtual();
+        };
+        
+        renderizarListaInventario('itens', `popup-sub-itens-lista-${subIndex}`);
+        renderizarListaInventario('equipamentos', `popup-sub-equipamentos-lista-${subIndex}`);
+        renderizarListaInventario('tiposDano', `popup-sub-tiposDano-lista-${subIndex}`);
     }
     
     function renderizarSubFichaPopup(sub, index) {
@@ -1263,32 +1567,29 @@
         if (!popup || !tituloSpan || !tipoSpan || !abasDiv || !conteudoDiv) return;
         
         tituloSpan.innerText = sub.nome;
-        tipoSpan.innerText = sub.tipo === 'aliado' ? 'Aliado' : (sub.tipo === 'familiar' ? 'Familiar' : 'Invovação');
+        tipoSpan.innerText = sub.tipo === 'aliado' ? 'Aliado' : (sub.tipo === 'familiar' ? 'Familiar' : 'Invocação');
         tipoSpan.className = `subficha-tipo-badge ${sub.tipo}`;
         
-        const abas = [
-            { id: 'principal', nome: '📋 Principal' },
-            { id: 'vantagens', nome: '✨ Vantagens' },
-            { id: 'inventario', nome: '🎒 Inventário' },
-            { id: 'magias', nome: '🔮 Magias' },
-            { id: 'kits', nome: '📦 Kits' }
-        ];
+        abasDiv.innerHTML = `
+            <button class="subficha-aba-btn ativa" data-aba-sub="principal">📋 Principal</button>
+            <button class="subficha-aba-btn-abrir" data-tipo="vantagens">✨ Vantagens</button>
+            <button class="subficha-aba-btn-abrir" data-tipo="inventario">🎒 Inventário</button>
+            <button class="subficha-aba-btn-abrir" data-tipo="magias">🔮 Magias</button>
+            <button class="subficha-aba-btn-abrir" data-tipo="kits">📦 Kits</button>
+        `;
         
-        abasDiv.innerHTML = '';
-        abas.forEach((aba, i) => {
-            const btn = document.createElement('button');
-            btn.className = `subficha-aba-btn ${i === 0 ? 'ativa' : ''}`;
-            btn.setAttribute('data-aba-sub', aba.id);
-            btn.innerText = aba.nome;
+        abasDiv.querySelectorAll('.subficha-aba-btn-abrir').forEach(btn => {
             btn.onclick = () => {
-                document.querySelectorAll('#subfichaPopupAbas .subficha-aba-btn').forEach(b => b.classList.remove('ativa'));
-                document.querySelectorAll('.subficha-aba-conteudo').forEach(c => c.classList.remove('ativa'));
-                btn.classList.add('ativa');
-                document.getElementById(`subficha-aba-${aba.id}`).classList.add('ativa');
+                const tipo = btn.dataset.tipo;
+                if (tipo === 'inventario') {
+                    abrirPopupInventario(index);
+                } else {
+                    abrirPopupSubLista(index, tipo);
+                }
             };
-            abasDiv.appendChild(btn);
         });
         
+        // Aba principal
         conteudoDiv.innerHTML = `
             <div id="subficha-aba-principal" class="subficha-aba-conteudo ativa">
                 <div class="layout-duas-colunas">
@@ -1336,84 +1637,43 @@
                     </div>
                 </div>
             </div>
-            <div id="subficha-aba-vantagens" class="subficha-aba-conteudo">
-                <div class="grid-4">
-                    <div class="card-lista"><h3>✅ Vantagens</h3><div id="subficha-vantagensLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="vantagens" data-sub="${index}">+ Adicionar Vantagem</button></div>
-                    <div class="card-lista"><h3>❌ Desvantagens</h3><div id="subficha-desvantagensLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="desvantagens" data-sub="${index}">+ Adicionar Desvantagem</button></div>
-                    <div class="card-lista"><h3>⚡ Perícias</h3><div id="subficha-periciasLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="pericias" data-sub="${index}">+ Adicionar Perícia</button></div>
-                    <div class="card-lista"><h3>⚡ Especializações</h3><div id="subficha-especializacoesLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="especializacoes" data-sub="${index}">+ Adicionar Especialização</button></div>
-                </div>
-            </div>
-            <div id="subficha-aba-inventario" class="subficha-aba-conteudo">
-                <div class="grid-3">
-                    <div class="card-lista"><h3>📦 Itens</h3><div id="subficha-itensLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="itens" data-sub="${index}">+ Adicionar Item</button></div>
-                    <div class="card-lista"><h3>⚔️ Equipamentos</h3><div id="subficha-equipamentosLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="equipamentos" data-sub="${index}">+ Adicionar Equipamento</button></div>
-                    <div class="card-lista"><h3>💥 Tipos de Dano</h3><div id="subficha-tiposDanoLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="tiposDano" data-sub="${index}">+ Adicionar Tipo de Dano</button></div>
-                </div>
-            </div>
-            <div id="subficha-aba-magias" class="subficha-aba-conteudo">
-                <div class="card-full"><h3>🔮 Magias</h3><div id="subficha-magiasLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="magias" data-sub="${index}">+ Adicionar Magia</button></div>
-            </div>
-            <div id="subficha-aba-kits" class="subficha-aba-conteudo">
-                <div class="card-full"><h3>📦 Kits</h3><div id="subficha-kitsLista-${index}" class="lista"></div><button class="btn-add-sub" data-tipo="kits" data-sub="${index}">+ Adicionar Kit</button></div>
-            </div>
         `;
         
-        function renderizarListaSub(tipo, containerId, lista, idx) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            if (!lista || !Array.isArray(lista)) { container.innerHTML = '<div style="color:#888; text-align:center; padding:10px;">Nenhum item</div>'; return; }
-            container.innerHTML = '';
-            lista.forEach((elemento, i) => {
-                const itemDiv = document.createElement('div');
-                itemDiv.className = 'item';
-                itemDiv.innerHTML = `
-                    <div class="item-linha">
-                        <input type="text" value="${escapeHtml(elemento.nome)}" placeholder="Nome" data-field="nome" data-idx="${i}" data-tipo="${tipo}" data-sub="${idx}">
-                        <input type="text" class="valor" value="${escapeHtml(elemento.valor)}" placeholder="Custo" data-field="valor" data-idx="${i}" data-tipo="${tipo}" data-sub="${idx}">
-                        <button class="btn-desc-sub" data-idx="${i}" data-tipo="${tipo}" data-sub="${idx}">📖</button>
-                        <button class="btn-del-sub" data-idx="${i}" data-tipo="${tipo}" data-sub="${idx}">❌</button>
-                    </div>
-                    <div class="desc-editor" style="display: ${elemento.visivel ? 'block' : 'none'}; margin-top:8px;">
-                        <textarea rows="2" placeholder="Descrição detalhada..." data-field="desc" data-idx="${i}" data-tipo="${tipo}" data-sub="${idx}" style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:5px; padding:8px;">${escapeHtml(elemento.desc)}</textarea>
-                    </div>
-                `;
-                container.appendChild(itemDiv);
-            });
-            
-            container.querySelectorAll('.btn-desc-sub').forEach(btn => {
-                btn.onclick = () => {
-                    const ii = parseInt(btn.dataset.idx), tipoL = btn.dataset.tipo, subIdx = parseInt(btn.dataset.sub);
-                    const descDiv = btn.closest('.item').querySelector('.desc-editor');
-                    if (descDiv) { const isVisible = descDiv.style.display === 'block'; descDiv.style.display = isVisible ? 'none' : 'block'; if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL][ii]) subFichas[subIdx].listas[tipoL][ii].visivel = !isVisible; }
-                };
-            });
-            container.querySelectorAll('.btn-del-sub').forEach(btn => {
-                btn.onclick = () => {
-                    const ii = parseInt(btn.dataset.idx), tipoL = btn.dataset.tipo, subIdx = parseInt(btn.dataset.sub);
-                    if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL]) { subFichas[subIdx].listas[tipoL].splice(ii, 1); renderizarSubFichaPopup(subFichas[subIdx], subIdx); }
-                };
-            });
-            container.querySelectorAll('input[data-field="nome"], input[data-field="valor"]').forEach(input => {
+        // Eventos com debounce
+        const atributosSub = ['forca', 'bonusForca', 'habilidade', 'bonusHabilidade', 'resistencia', 'bonusResistencia', 'armadura', 'bonusArmadura', 'pdf', 'bonusPdf', 'pvTotal', 'pvAtual', 'pmTotal', 'pmAtual', 'pontos', 'xp', 'dinheiro'];
+        atributosSub.forEach(attr => {
+            const input = document.getElementById(`subficha-${attr}-${index}`);
+            if (input) {
                 input.onchange = () => {
-                    const ii = parseInt(input.dataset.idx), field = input.dataset.field, tipoL = input.dataset.tipo, subIdx = parseInt(input.dataset.sub);
-                    if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL][ii]) subFichas[subIdx].listas[tipoL][ii][field] = input.value;
+                    const field = input.id.split('-')[1];
+                    sub[field] = input.type === 'number' ? (parseInt(input.value) || 0) : input.value;
+                    debounceSaveSubFicha();
                 };
-            });
-            container.querySelectorAll('textarea[data-field="desc"]').forEach(textarea => {
-                textarea.onchange = () => {
-                    const ii = parseInt(textarea.dataset.idx), tipoL = textarea.dataset.tipo, subIdx = parseInt(textarea.dataset.sub);
-                    if (subFichas[subIdx] && subFichas[subIdx].listas[tipoL][ii]) subFichas[subIdx].listas[tipoL][ii].desc = textarea.value;
-                };
-            });
+            }
+        });
+        
+        const nomeInput = document.getElementById(`subficha-nome-${index}`);
+        if (nomeInput) {
+            nomeInput.onchange = () => {
+                sub.nome = nomeInput.value;
+                debounceSaveSubFicha();
+                document.getElementById('subfichaPopupNome').innerText = sub.nome;
+                renderizarSubFichas();
+            };
         }
         
-        document.querySelectorAll(`.btn-add-sub[data-sub="${index}"]`).forEach(btn => {
+        const vantagemNome = document.getElementById(`subficha-vantagemUnicaNome-${index}`);
+        const vantagemCusto = document.getElementById(`subficha-vantagemUnicaCusto-${index}`);
+        if (vantagemNome) vantagemNome.onchange = () => { sub.vantagemUnicaNome = vantagemNome.value; debounceSaveSubFicha(); };
+        if (vantagemCusto) vantagemCusto.onchange = () => { sub.vantagemUnicaCusto = parseInt(vantagemCusto.value) || 0; debounceSaveSubFicha(); };
+        
+        const vantagemDesc = document.getElementById(`subficha-vantagemUnicaDesc-${index}`);
+        if (vantagemDesc) vantagemDesc.onchange = () => { sub.vantagemUnicaDesc = vantagemDesc.value; debounceSaveSubFicha(); };
+        
+        document.querySelectorAll(`.btn-desc-sub-vantagem[data-sub="${index}"]`).forEach(btn => {
             btn.onclick = () => {
-                const tipo = btn.dataset.tipo;
-                if (!sub.listas[tipo]) sub.listas[tipo] = [];
-                sub.listas[tipo].push({ nome: '', valor: '', desc: '', visivel: false });
-                renderizarSubFichaPopup(sub, index);
+                const editor = document.getElementById(`subficha-vantagemUnicaDescEditor-${index}`);
+                if (editor) editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
             };
         });
         
@@ -1477,21 +1737,6 @@
             };
         });
         
-        document.querySelectorAll(`#subficha-forca-${index}, #subficha-bonusForca-${index}, #subficha-habilidade-${index}, #subficha-bonusHabilidade-${index}, #subficha-resistencia-${index}, #subficha-bonusResistencia-${index}, #subficha-armadura-${index}, #subficha-bonusArmadura-${index}, #subficha-pdf-${index}, #subficha-bonusPdf-${index}, #subficha-pvTotal-${index}, #subficha-pvAtual-${index}, #subficha-pmTotal-${index}, #subficha-pmAtual-${index}, #subficha-pontos-${index}, #subficha-xp-${index}, #subficha-dinheiro-${index}, #subficha-nome-${index}, #subficha-vantagemUnicaNome-${index}, #subficha-vantagemUnicaCusto-${index}`).forEach(input => {
-            input.onchange = () => {
-                const field = input.id.split('-')[1];
-                sub[field] = input.type === 'number' ? (parseInt(input.value) || 0) : input.value;
-            };
-        });
-        
-        document.querySelectorAll(`.btn-desc-sub-vantagem[data-sub="${index}"]`).forEach(btn => {
-            btn.onclick = () => {
-                const editor = document.getElementById(`subficha-vantagemUnicaDescEditor-${index}`);
-                if (editor) editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
-            };
-        });
-        document.querySelectorAll(`#subficha-vantagemUnicaDesc-${index}`).forEach(textarea => { textarea.onchange = () => { sub.vantagemUnicaDesc = textarea.value; }; });
-        
         const uploadInput = document.getElementById(`subficha-upload-${index}`);
         const avatarDiv = document.getElementById(`subficha-avatar-${index}`);
         if (uploadInput && avatarDiv) {
@@ -1501,18 +1746,9 @@
                 const avatarComprimido = await comprimirAvatar(file);
                 sub.avatarSrc = avatarComprimido;
                 avatarDiv.innerHTML = `<img src="${sub.avatarSrc}">`;
+                debounceSaveSubFicha();
             };
         }
-        
-        renderizarListaSub('vantagens', `subficha-vantagensLista-${index}`, sub.listas.vantagens, index);
-        renderizarListaSub('desvantagens', `subficha-desvantagensLista-${index}`, sub.listas.desvantagens, index);
-        renderizarListaSub('pericias', `subficha-periciasLista-${index}`, sub.listas.pericias, index);
-        renderizarListaSub('especializacoes', `subficha-especializacoesLista-${index}`, sub.listas.especializacoes, index);
-        renderizarListaSub('itens', `subficha-itensLista-${index}`, sub.listas.itens, index);
-        renderizarListaSub('equipamentos', `subficha-equipamentosLista-${index}`, sub.listas.equipamentos, index);
-        renderizarListaSub('tiposDano', `subficha-tiposDanoLista-${index}`, sub.listas.tiposDano, index);
-        renderizarListaSub('magias', `subficha-magiasLista-${index}`, sub.listas.magias, index);
-        renderizarListaSub('kits', `subficha-kitsLista-${index}`, sub.listas.kits, index);
     }
     
     function abrirSubFicha(index) {
@@ -1524,6 +1760,7 @@
     
     function fecharSubFicha() {
         document.getElementById('subfichaPopup').style.display = 'none';
+        if (subFichaSaveTimeout) clearTimeout(subFichaSaveTimeout);
         salvarFichaAtual();
     }
     
